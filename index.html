@@ -175,8 +175,6 @@
     .menu { flex-direction:row; gap:14px; }
     .lang { top:22px; right:20px; }
     main { margin-left:0; padding:20px 20px 120px; }
-    .works-wrap { flex-direction:column; gap:28px; }
-    .works-list { width:100%; position:static; max-height:none; }
   }
 
   /* ---------- PLAYER ---------- */
@@ -195,7 +193,8 @@
   .track { display:grid; grid-template-columns:1.5fr .56fr .48fr .5fr .5fr .42fr .3fr .5fr;
     align-items:center; line-height:1.5; gap:10px; width:100%; text-align:left; padding:5px 2px;
     border-bottom:1px solid var(--line); color:var(--dim); transition:color .15s; }
-  .track > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:inherit; }
+  .track .specs { display:contents; }
+  .track span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:inherit; }
   .track .f { font-variant-numeric:tabular-nums; letter-spacing:.03em; }
   .track .yr { grid-column:8; text-align:right; font-variant-numeric:tabular-nums; }
   .track .fps { grid-column:7; }
@@ -213,6 +212,26 @@
   .pl-right { scrollbar-width:thin; scrollbar-color:#222 transparent; }
   .tracklist::-webkit-scrollbar, .pl-right::-webkit-scrollbar { width:4px; }
   .tracklist::-webkit-scrollbar-track, .pl-right::-webkit-scrollbar-track { background:transparent; }
+
+  /* ---------- PLAYER: 모바일 ----------
+     PLAYER 기본 규칙 뒤에 와야 한다. 명시도가 같으면 나중 규칙이 이긴다. */
+  @media (max-width:768px){
+    .player { flex-direction:column; height:auto; gap:26px; }
+    .pl-left, .pl-right { flex:none; overflow:visible; min-height:0; }
+    .tracklist { flex:none; overflow:visible; margin-top:0; }
+    .stage { --stage-max:none; margin-bottom:18px; }
+    .stage:empty { display:none; }        /* 선택 전에는 빈 자리를 예약하지 않는다 */
+    .pl-right .ph { padding-top:0; }
+
+    /* 한 줄: 제목 + 연도 / 그 아래 줄: 사양을 · 로 이어 흘린다 */
+    .track { grid-template-columns:1fr auto; gap:3px 12px; padding:10px 2px; }
+    .track .ttitle { grid-column:1; grid-row:1; white-space:normal; }
+    .track .yr { grid-column:2; grid-row:1; }
+    .track .specs { display:block; grid-column:1 / -1; grid-row:2;
+      font-size:.92em; opacity:.7; white-space:normal; overflow:visible; }
+    .track .specs span { display:inline; white-space:normal; overflow:visible; }
+    .track .specs span + span::before { content:" · "; }
+  }
   .tracklist::-webkit-scrollbar-thumb, .pl-right::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
   @media (max-width:900px){ .player { gap:26px; } }
 </style>
@@ -791,7 +810,7 @@ var CV = {
        ] } ]
 };
 
-var CONTACT = { email:"a.parallel.one@gmail.com", instagram:"@rui_zzang__" };
+var CONTACT = { email:"hello@example.com", instagram:"@rui.kim" };
 
 function tt(o){ return o[lang]; }
 
@@ -850,23 +869,21 @@ function stillsHTML(w){
 
 function trackRow(w){
   var cls = "track"+(w.id===selected?" active":"");
-  var t = w.tr||{}, cells;
+  var t = w.tr||{}, mid;
   if(w.kind==="o"){
     var sv = t.siz ? tt(t.siz) : "";
-    cells = '<span class="ttitle">'+tt(w.title)+'</span>'
-      + (sv ? '<span class="f mat">'+(t.mat?tt(t.mat):"")+'</span><span class="f siz">'+sv+'</span>'
-            : '<span class="f matfull">'+(t.mat?tt(t.mat):"")+'</span>')
-      + '<span class="yr">'+w.year+'</span>';
+    mid = sv ? '<span class="f mat">'+(t.mat?tt(t.mat):"")+'</span><span class="f siz">'+sv+'</span>'
+             : '<span class="f matfull">'+(t.mat?tt(t.mat):"")+'</span>';
   } else if(t.status){
-    cells = '<span class="ttitle">'+tt(w.title)+'</span>'
-      + '<span class="f prog">'+(t.ch?tt(t.ch)+' · ':"")+tt(t.status)+'</span>'
-      + '<span class="yr">'+w.year+'</span>';
+    mid = '<span class="f prog">'+(t.ch?tt(t.ch)+' · ':"")+tt(t.status)+'</span>';
   } else {
-    cells = '<span class="ttitle">'+tt(w.title)+'</span>'
-      + '<span class="f">'+tt(t.ch)+'</span><span class="f">'+t.run+'</span>'
-      + '<span class="f">'+t.res+'</span><span class="f">'+tt(t.col)+'</span>'
-      + '<span class="f">'+tt(t.snd)+'</span><span class="f fps">'+(t.fps||"")+'</span><span class="yr">'+w.year+'</span>';
+    mid = '<span class="f">'+tt(t.ch)+'</span><span class="f">'+t.run+'</span>'
+        + '<span class="f">'+t.res+'</span><span class="f">'+tt(t.col)+'</span>'
+        + '<span class="f">'+tt(t.snd)+'</span><span class="f fps">'+(t.fps||"")+'</span>';
   }
+  var cells = '<span class="ttitle">'+tt(w.title)+'</span>'
+    + '<span class="specs">'+mid+'</span>'
+    + '<span class="yr">'+w.year+'</span>';
   return '<button class="'+cls+'" onclick="pick(\''+w.id+'\')">'+cells+'</button>';
 }
 
