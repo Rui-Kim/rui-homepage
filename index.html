@@ -222,27 +222,39 @@
 
   /* ---------- PLAYER: 모바일 ----------
      PLAYER 기본 규칙 뒤에 와야 한다. 명시도가 같으면 나중 규칙이 이긴다. */
+  /* 연도 내비 — 모바일 전용 */
+  .yr-nav { display:none; }
+
   @media (max-width:768px){
     .player { flex-direction:column; height:auto; gap:0; }
-    .pl-left { flex:none; display:flex; flex-direction:column; overflow:visible; min-height:0; }
-    .pl-right { flex:none; overflow:visible; min-height:0; }
+    /* 행·영상·이미지를 한 flex 컨테이너의 형제로 만들어 order 로 끼워 넣는다.
+       iframe 은 DOM 에서 이동하지 않으므로 재로딩되지 않는다. */
+    .pl-left, .tracklist, .yr-nav-slot { display:contents; }
+    .track, .stage-holder, .pl-right { order:var(--o, 0); }
+    .pl-right { flex:none; overflow:visible; min-height:0; margin-top:24px; }
 
-    /* 리스트를 맨 위로. 선택하면 영상과 이미지가 그 아래로 펼쳐진다 */
-    .tracklist { order:1; flex:none; overflow:visible; margin-top:0; }
-    .stage-holder { order:2; }
-    .stage { --stage-max:none; margin:26px 0 0; }
-    .stage:empty { display:none; }        /* 선택 전에는 빈 자리를 예약하지 않는다 */
-    .pl-right { margin-top:26px; }
-    .pl-right .ph { padding-top:0; }
+    .yr-nav { order:-1; display:flex; align-items:center; gap:10px;
+      margin-bottom:0; padding-bottom:9px; border-bottom:1px solid var(--fg); }
+    .yr-strip { flex:1; min-width:0; display:flex; gap:16px; overflow-x:auto;
+      scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+    .yr-strip::-webkit-scrollbar { display:none; }
+    .yr-btn { flex:0 0 auto; color:var(--dim); padding:4px 0; letter-spacing:.04em;
+      font-variant-numeric:tabular-nums; transition:color .2s; }
+    .yr-btn.on { color:var(--hover); font-weight:700; }
+    .yr-all { flex:0 0 auto; padding-left:14px; border-left:1px solid var(--line); }
 
-    /* 한 줄: 제목 + 연도 / 그 아래 줄: 사양을 · 로 이어 흘린다 */
-    .track { grid-template-columns:1fr auto; gap:1px 12px; padding:7px 2px; line-height:1.35; }
+    .track { grid-template-columns:1fr; gap:1px; padding:7px 2px; line-height:1.35; }
+    .track.hide-m { display:none; }
     .track .ttitle { grid-column:1; grid-row:1; white-space:normal; }
-    .track .yr { grid-column:2; grid-row:1; }
-    .track .specs { display:block; grid-column:1 / -1; grid-row:2;
+    .track .yr { display:none; }
+    .track .specs { display:block; grid-column:1; grid-row:2;
       font-size:.9em; line-height:1.3; opacity:.7; white-space:normal; overflow:visible; }
     .track .specs span { display:inline; white-space:normal; overflow:visible; }
     .track .specs span + span::before { content:" · "; }
+
+    .stage { --stage-max:none; margin:20px 0 0; }
+    .stage:empty { display:none; }        /* 선택 전에는 빈 자리를 예약하지 않는다 */
+    .pl-right .ph { display:none; }       /* 아코디언에서는 안내 문구가 필요 없다 */
   }
   .tracklist::-webkit-scrollbar-thumb, .pl-right::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
   @media (max-width:900px){ .player { gap:26px; } }
@@ -896,10 +908,39 @@ function trackRow(w){
   var cells = '<span class="ttitle">'+tt(w.title)+'</span>'
     + '<span class="specs">'+mid+'</span>'
     + '<span class="yr">'+w.year+'</span>';
-  return '<button class="'+cls+'" onclick="pick(\''+w.id+'\')">'+cells+'</button>';
+  return '<button class="'+cls+'" data-year="'+w.year+'" onclick="pick(\''+w.id+'\')">'+cells+'</button>';
 }
 
 var stageWorkId;   // 현재 stage에 올라가 있는 작업 id. 미설정(undefined)은 "아직 안 그림"이며 selected===null 과 구별된다.
+
+var yearFilter = null;   // null = 전체. 모바일에서만 의미를 갖는다.
+
+function yearsList(){
+  var seen = [];
+  WORKS.forEach(function(w){ if(seen.indexOf(w.year)<0) seen.push(w.year); });
+  return seen.slice().sort();          // 오름차순: 2022 … 2026
+}
+
+function pickYear(y){
+  yearFilter = y;      // y === null 이면 전체
+  selected = null;     // 다른 해로 옮기면 선택을 푼다
+  renderWork();
+  var strip = document.querySelector(".yr-strip");
+  var on = strip && strip.querySelector(".yr-btn.on");
+  if(on && strip.scrollWidth > strip.clientWidth){
+    on.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"});
+  }
+}
+
+function yearNavHTML(){
+  var ys = yearsList();
+  var strip = ys.map(function(y){
+    return '<button class="yr-btn'+(yearFilter===y?" on":"")+'" onclick="pickYear(\''+y+'\')">'+y+'</button>';
+  }).join("");
+  var all = '<button class="yr-btn yr-all'+(yearFilter===null?" on":"")+'" onclick="pickYear(null)">'
+          + (lang==="ko"?"전체":"All")+'</button>';
+  return '<div class="yr-nav"><div class="yr-strip">'+strip+'</div>'+all+'</div>';
+}
 
 function renderWork(){
   var root = document.getElementById("work");
@@ -908,9 +949,11 @@ function renderWork(){
   if(!root.querySelector(".player")){
     root.innerHTML =
       '<div class="player"><div class="pl-left">'
+      + '<div class="yr-nav-slot"></div>'
       + '<div class="stage-holder"></div><div class="tracklist"></div>'
       + '</div><div class="pl-right"></div></div>';
     stageWorkId = undefined;
+    if(yearFilter === undefined || yearFilter === null) yearFilter = WORKS[0].year;  // 기본값: 최신 연도
   }
 
   var holder = root.querySelector(".stage-holder");
@@ -927,10 +970,35 @@ function renderWork(){
     stageWorkId = selected;
   }
 
+  root.querySelector(".yr-nav-slot").innerHTML = yearNavHTML();
   root.querySelector(".tracklist").innerHTML = WORKS.map(trackRow).join("");
   root.querySelector(".pl-right").innerHTML = w
     ? (stillsHTML(w) || (w.embed ? "" : '<div class="ph">'+(lang==="ko"?"준비 중":"coming soon")+'</div>'))
     : '<div class="ph"><em>select a work from the list</em></div>';
+
+  layoutMobileOrder(root);
+}
+
+/* 모바일 아코디언: 영상·이미지를 선택한 행 바로 뒤에 오도록 order 를 매긴다.
+   iframe 은 DOM 에서 움직이지 않으므로 재로딩되지 않는다. 데스크톱에서는 order 가 무시된다. */
+function layoutMobileOrder(root){
+  var rows = [].slice.call(root.querySelectorAll(".track"));
+  var activeIdx = -1;
+  rows.forEach(function(r, i){
+    r.style.setProperty("--o", i*10);     // order 는 모바일 CSS 에서만 소비한다
+    var y = r.getAttribute("data-year");
+    r.classList.toggle("hide-m", yearFilter !== null && y !== yearFilter);
+    if(r.classList.contains("active")) activeIdx = i;
+  });
+  var holder = root.querySelector(".stage-holder");
+  var right  = root.querySelector(".pl-right");
+  if(activeIdx > -1){
+    holder.style.setProperty("--o", activeIdx*10 + 5);
+    right.style.setProperty("--o", activeIdx*10 + 6);
+  } else {
+    holder.style.setProperty("--o", 100000);
+    right.style.setProperty("--o", 100001);
+  }
 }
 
 function pick(id){ selected = id; renderWork(); window.scrollTo(0,0); }
