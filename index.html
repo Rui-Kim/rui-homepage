@@ -27,6 +27,9 @@
     position:fixed; top:0; left:0; height:100vh; width:100px;
     padding:28px 24px; display:flex; flex-direction:column; gap:20px; z-index:10;
   }
+  /* 화면에는 안 보이지만 스크린 리더·검색엔진은 읽는다. display:none 이면 둘 다 못 읽는다 */
+  .sr-only { position:absolute; width:1px; height:1px; margin:-1px; padding:0;
+    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
   .brand { text-align:left; letter-spacing:.02em; color:var(--fg); transition:color .2s; line-height:1.5; }
   .brand:hover { color:var(--hover); }
   .menu { display:flex; flex-direction:column; gap:3px; align-items:flex-start; }
@@ -114,7 +117,8 @@
   .texts-detail .t-body p { color:var(--fg); max-width:none; line-height:1.8; margin-bottom:17px; text-indent:1em; }
   .texts-detail .t-body p.q { text-indent:0; color:var(--dim); padding-left:1.6em; margin:22px 0; }
   .texts-detail .t-body p.h { text-indent:0; color:var(--fg); letter-spacing:.04em; line-height:1.6; margin:34px 0 15px; }
-  .texts-detail .t-body.t-stmt { font-size:12px; }
+  /* 작가 소개는 시트를 두르지 않지만, 글줄 폭은 다른 글과 같게 유지한다 */
+  .texts-detail .t-body.t-stmt { font-size:12px; padding:0 44px; }
   .texts-detail .t-body sup { font-size:.72em; line-height:0; vertical-align:super; color:var(--dim); margin-left:1px; }
   .texts-detail .t-notes { margin-top:30px; padding-top:14px; border-top:1px solid var(--line); }
   .texts-detail .t-notes p { color:var(--dim); font-size:.84em; line-height:1.5; margin-bottom:7px; max-width:none; }
@@ -158,6 +162,7 @@
     .texts-detail.detail-main { display:none; }   /* 모바일에서는 본문이 항목 아래로 */
     .texts-detail.detail-inline { display:block; height:auto; overflow:visible;
       margin:18px 0 26px; padding:0; }
+    .texts-detail .t-body.t-stmt { padding:0; }   /* 좁은 화면에서는 좌우 여백 불필요 */
     .texts-list .t-gap { height:34px; }
   }
 
@@ -268,6 +273,7 @@
 <div id="home-bg"></div>
 
 <aside class="side">
+  <h1 class="sr-only">Rui Kim / 김루이 — 영상·빛 실험</h1>
   <button class="brand" id="brand">Rui Kim<br>김루이</button>
   <nav class="menu" id="menu"></nav>
 </aside>
@@ -879,10 +885,15 @@ function stillsHTML(w){
   var cap = w.caption ? tt(w.caption) : null;
   var capHtml = cap ? '<div class="d-cap">'+(Array.isArray(cap)?cap.map(function(l){return '<div class="cap-line">'+l+'</div>';}).join(""):cap)+'</div>' : "";
   if(!w.images || !w.images.length) return capHtml;
+  var n = 0;
+  function alt(){                                   // 스크린 리더와 검색엔진이 읽는 대체 텍스트
+    n++;
+    return tt(w.title)+' — '+(lang==="ko"?"이미지":"image")+' '+n;
+  }
   var inner = w.images.map(function(it){
-    if(typeof it === "string") return '<img class="stack-img" src="'+it+'" alt="">';
+    if(typeof it === "string") return '<img class="stack-img" src="'+it+'" alt="'+alt()+'" loading="lazy">';
     if(it && it.gap) return '<div style="height:'+it.gap+'px"></div>';
-    if(it && it.src) return '<img class="stack-img" src="'+it.src+'" alt=""'+(it.w?' style="width:'+it.w+';align-self:center;"':'')+'>';
+    if(it && it.src) return '<img class="stack-img" src="'+it.src+'" alt="'+alt()+'" loading="lazy"'+(it.w?' style="width:'+it.w+';align-self:center;"':'')+'>';
     if(it && it.cap){
       var css = it.w ? 'align-self:center;width:'+it.w+'px;max-width:100%;' : "";
       if(it.style) css += it.style;
