@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rui Kim / 김루이</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --bg:#141414; --fg:#cfcfcf; --dim:#8a8a8a; --hover:#fff; --line:#2a2a2a;
+          --link:#6f9ff0; --link-hover:#a8c6ff; }
+  html,body { background:var(--bg); }
+  /* works 페이지: 영상이 발광체가 되도록 배경을 더 낮춘다 */
+  html:has(body.route-work), body.route-work { background:#0a0a0a; }
+  body.route-work { transition:background-color .35s ease; }
+  body {
+    color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; font-size:10px; line-height:1.5;
+    min-height:100vh;
+  }
+  ::selection { background:#fff; color:#141414; }
+  button { font-family:inherit; font-size:inherit; background:none; border:none; color:inherit; cursor:pointer; }
+  a { color:inherit; text-decoration:none; }
+
+  /* 좌측 세로 메뉴 */
+  aside.side {
+    position:fixed; top:0; left:0; height:100vh; width:100px;
+    padding:28px 24px; display:flex; flex-direction:column; gap:20px; z-index:10;
+  }
+  .brand { text-align:left; letter-spacing:.02em; color:var(--fg); transition:color .2s; line-height:1.5; }
+  .brand:hover { color:var(--hover); }
+  .menu { display:flex; flex-direction:column; gap:3px; align-items:flex-start; }
+  .menu button { text-align:left; letter-spacing:.02em; color:var(--dim); transition:color .2s; }
+  .menu button:hover { color:var(--hover); }
+  .menu button.active { color:var(--hover); }
+
+  /* 우상단 언어 토글 */
+  .lang {
+    position:fixed; top:28px; right:28px; z-index:11;
+    display:flex; align-items:center; gap:7px; letter-spacing:.08em;
+  }
+  .lang button { color:var(--dim); transition:color .2s; }
+  .lang button:hover { color:var(--hover); }
+  .lang button.on { color:var(--hover); }
+  .lang .sep { color:var(--dim); }
+
+  /* 본문 */
+  main { margin-left:100px; padding:64px 40px 40px 8px; }
+  .page { display:none; }
+  .page.active { display:block; }
+  p { margin-bottom:16px; max-width:640px; }
+
+  /* 홈 배경 (선택: 이미지 넣으면 홈에서만 표시) */
+  #home-bg {
+    position:fixed; inset:0; z-index:0; display:none;
+    background:#141414 center/cover no-repeat;
+  }
+  body.home-mode #home-bg { display:block; }
+
+  /* WORKS — 2단 (목록 | 상세) */
+  .works-wrap { display:flex; gap:44px; align-items:flex-start; }
+  .works-list { width:210px; flex-shrink:0; position:sticky; top:64px; align-self:flex-start;
+    max-height:calc(100vh - 104px); overflow-y:auto; }
+  .yeargroup { margin-bottom:12px; }
+  .yeargroup .year { color:var(--fg); letter-spacing:.08em; margin-bottom:1px; }
+  .work-item { display:block; text-align:left; padding:0; line-height:1.3; color:var(--dim); transition:color .2s; }
+  .work-item:hover { color:var(--hover); }
+  .work-item.active { color:var(--hover); }
+
+  .works-detail { flex:1; min-width:0; max-width:900px; }
+  .works-detail .d-title { color:var(--fg); line-height:1.1; margin-bottom:2px; }
+  .works-detail .d-medium { color:var(--dim); margin-top:2px; margin-bottom:4px; line-height:1.1; }
+  .frame {
+    aspect-ratio:16/9; width:100%; background:#202020;
+    display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:14px;
+  }
+  .frame span { color:#666; font-size:10px; letter-spacing:.2em; }
+  .frame iframe { width:100%; height:100%; border:0; }
+  .works-detail .d-cap { color:var(--fg); margin-top:14px; max-width:640px; line-height:1.1; }
+  .works-detail .d-cap .cap-line { margin-bottom:2px; }
+  .img-stack { display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:14px; }
+  .img-stack .stack-img { max-width:100%; height:auto; display:block; }
+  .frame.video { margin-left:auto; margin-right:auto; }
+  .img-stack .stack-cap { align-self:stretch; text-align:left; margin:4px 0 11px; color:var(--fg); line-height:1.45; }
+  .img-stack .stack-cap.indent .cap-line { text-indent:1.6em; }
+  .img-stack .stack-cap .cap-line { margin-bottom:2px; }
+
+  /* TEXTS */
+  .writing { margin-top:36px; }
+  .writing h3 { color:var(--fg); letter-spacing:.08em; margin-bottom:8px; }
+  .writing .row { padding:3px 0; color:var(--dim); }
+  /* TEXTS — 스테이트먼트(상단) + 좌측 리스트 + 중앙 본문 */
+  .texts-page { display:flex; flex-direction:column; height:calc(100vh - 104px); font-size:12px; }
+  .texts-wrap { position:relative; flex:1 1 auto; min-height:0; margin-top:4px; }
+  .texts-list { position:absolute; left:0; top:0; bottom:0; width:260px;
+    padding-right:28px; border-right:1px solid var(--line); overflow-y:auto;
+    scrollbar-width:thin; scrollbar-color:#222 transparent; }
+  .texts-list::-webkit-scrollbar { width:4px; }
+  .texts-list::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
+  .texts-list .t-title { display:block; width:100%; text-align:left; padding:0 0 11px;
+    color:var(--dim); line-height:1.4; transition:color .2s; }
+  .texts-list .t-title + .t-title { padding-top:11px; border-top:1px solid var(--line); }
+  .texts-list .t-title:hover { color:var(--hover); }
+  .texts-list .t-title.active { color:var(--hover); }
+  .texts-list .t-gap { height:101px; }
+  .texts-detail { height:100%; overflow-y:auto; width:100%; max-width:644px; margin:0 auto;
+    padding:0 42px; font-size:13px; scrollbar-width:thin; scrollbar-color:#222 transparent; }
+  .texts-detail::-webkit-scrollbar { width:4px; }
+  .texts-detail::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
+  .texts-detail .t-body p { color:var(--fg); max-width:none; line-height:1.8; margin-bottom:17px; text-indent:1em; }
+  .texts-detail .t-body p.q { text-indent:0; color:var(--dim); padding-left:1.6em; margin:22px 0; }
+  .texts-detail .t-body p.h { text-indent:0; color:var(--fg); letter-spacing:.04em; line-height:1.6; margin:34px 0 15px; }
+  .texts-detail .t-body.t-stmt { font-size:12px; }
+  .texts-detail .t-body sup { font-size:.72em; line-height:0; vertical-align:super; color:var(--dim); margin-left:1px; }
+  .texts-detail .t-notes { margin-top:30px; padding-top:14px; border-top:1px solid var(--line); }
+  .texts-detail .t-notes p { color:var(--dim); font-size:.84em; line-height:1.5; margin-bottom:7px; max-width:none; }
+  .texts-detail .t-notes a.t-link { color:var(--dim); border-bottom:1px solid var(--line); transition:color .2s,border-color .2s; }
+  .texts-detail .t-notes a.t-link:hover { color:var(--hover); border-color:var(--hover); }
+
+  /* 시트 — 작가 소개를 제외한 글 본문. 어두운 배경 위에 투명하게 떠 있는 회색 면 */
+  .texts-detail .t-sheet {
+    --ink:#d6d6d6; --ink-dim:#8b8884; --rule:rgba(255,255,255,.11);
+    background:rgba(255,255,255,.055);
+    color:var(--ink);
+    border-radius:4px;
+    padding:46px 44px 40px; margin-bottom:44px;
+  }
+  .texts-detail .t-sheet .t-head { margin-bottom:30px; }
+  .texts-detail .t-sheet .t-h-title { color:var(--ink); line-height:1.55; }
+  .texts-detail .t-sheet .t-h-by { color:var(--ink-dim); margin-top:6px; line-height:1.5; }
+  .texts-detail .t-sheet .t-body p { color:var(--ink); }
+  .texts-detail .t-sheet .t-body p.q { color:var(--ink-dim); }
+  .texts-detail .t-sheet .t-body p.h { color:var(--ink); }
+  .texts-detail .t-sheet .t-body sup { color:var(--ink-dim); }
+  .texts-detail .t-sheet .t-notes { border-top:1px solid var(--rule); }
+  .texts-detail .t-sheet .t-notes p { color:var(--ink-dim); }
+  .texts-detail .t-sheet .t-notes a.t-link { color:var(--ink-dim); border-bottom-color:var(--rule); }
+  .texts-detail .t-sheet .t-notes a.t-link:hover { color:var(--ink); border-bottom-color:var(--ink); }
+  .texts-detail .t-sheet .t-sign { color:var(--ink-dim); }
+  .texts-detail .t-sheet ::selection { background:#fff; color:#141414; }
+  .texts-detail .t-sheet .t-src { margin-top:22px; }
+  .texts-detail .t-sheet .t-src a.t-link { color:var(--ink-dim); border-bottom:1px solid var(--rule);
+    font-size:.9em; transition:color .2s,border-color .2s; }
+  .texts-detail .t-sheet .t-src a.t-link:hover { color:var(--ink); border-bottom-color:var(--ink); }
+  @media (max-width:768px){ .texts-detail .t-sheet { padding:30px 24px 26px; margin-bottom:24px; } }
+  .texts-detail .t-sign { color:var(--dim); margin-top:26px; line-height:1.5; }
+  .texts-detail .t-sign div { margin-bottom:1px; }
+  @media (max-width:1100px){ .texts-detail { max-width:none; margin:0 0 0 228px; } }
+  @media (max-width:768px){
+    .texts-page { height:auto; display:block; }
+    .texts-wrap { margin-top:36px; }
+    .texts-list { position:static; width:100%; padding-right:0; border-right:0; overflow:visible; }
+    .texts-detail { height:auto; margin:22px 0 0; padding:0; overflow:visible; }
+  }
+
+  /* CV */
+  #cv { font-size:11px; }
+  .cv-sec { margin-bottom:24px; }
+  .cv-sec h3 { color:var(--fg); letter-spacing:.06em; margin-bottom:3px; }
+  .cv-sec .row { line-height:1.45; color:var(--fg); }
+  body.lang-en .cv-sec .row,
+  body.lang-en .writing .row { letter-spacing:-0.02em; }
+  .contact { margin-top:0; }
+  .contact a.link { color:var(--link); text-decoration:underline;
+    text-underline-offset:2px; text-decoration-thickness:1px;
+    transition:color .2s; }
+  .contact a.link:hover { color:var(--link-hover); }
+
+  /* 모바일 */
+  @media (max-width:768px){
+    aside.side {
+      position:static; width:auto; height:auto; flex-direction:row;
+      align-items:baseline; gap:18px; flex-wrap:wrap; padding:22px 20px 10px;
+    }
+    .menu { flex-direction:row; gap:14px; }
+    .lang { top:22px; right:20px; }
+    main { margin-left:0; padding:20px 20px 120px; }
+    .works-wrap { flex-direction:column; gap:28px; }
+    .works-list { width:100%; position:static; max-height:none; }
+  }
+
+  /* ---------- PLAYER ---------- */
+  .player { display:flex; gap:44px; align-items:stretch; height:calc(100vh - 104px); }
+  .pl-left { flex:1.3; min-width:0; display:flex; flex-direction:column; min-height:0; }
+  .pl-right { flex:1; min-width:0; overflow-y:auto; min-height:0; }
+  .stage-holder { flex-shrink:0; }
+  /* stage: 16:9 높이(397)를 항상 예약해 트랙리스트 위치를 고정한다.
+     영상 폭만 --stage-max로 제한하고 가로 가운데 정렬. 세로 위치는 Vimeo가 결정. */
+  .stage { --stage-max:640px;
+    position:relative; width:100%; aspect-ratio:16/9; flex-shrink:0; background:transparent;
+    overflow:hidden; margin-bottom:22px;
+    display:flex; justify-content:center; }
+  .stage .vfill { position:static; width:100%; max-width:var(--stage-max); height:100%; border:0; display:block; }
+  .tracklist { border-top:1px solid var(--fg); margin-top:30px; flex:1; min-height:0; overflow-y:auto; }
+  .track { display:grid; grid-template-columns:1.5fr .56fr .48fr .5fr .5fr .42fr .3fr .5fr;
+    align-items:center; line-height:1.5; gap:10px; width:100%; text-align:left; padding:5px 2px;
+    border-bottom:1px solid var(--line); color:var(--dim); transition:color .15s; }
+  .track > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:inherit; }
+  .track .f { font-variant-numeric:tabular-nums; letter-spacing:.03em; }
+  .track .yr { grid-column:8; text-align:right; font-variant-numeric:tabular-nums; }
+  .track .fps { grid-column:7; }
+  .track .mat { grid-column:2 / 5; } .track .siz { grid-column:5 / 8; } .track .prog { grid-column:2 / 8; }
+  .track .matfull { grid-column:2 / 8; white-space:normal; overflow:visible; }
+  .track:hover, .track.active { color:var(--hover); }
+  .track.active .ttitle { text-decoration:underline; text-underline-offset:3px; }
+  .pl-right .ph { color:var(--dim); letter-spacing:.14em; padding-top:50px; }
+  .pl-right .d-cap { color:var(--fg); margin-top:14px; max-width:640px; line-height:1.1; }
+  .pl-right .d-cap .cap-line { margin-bottom:2px; }
+  #home-bg { cursor:pointer; }
+  /* thin dark scrollbars; tracklist scrollbar on the LEFT */
+  .tracklist { direction:rtl; scrollbar-width:thin; scrollbar-color:#222 transparent; }
+  .tracklist .track { direction:ltr; }
+  .pl-right { scrollbar-width:thin; scrollbar-color:#222 transparent; }
+  .tracklist::-webkit-scrollbar, .pl-right::-webkit-scrollbar { width:4px; }
+  .tracklist::-webkit-scrollbar-track, .pl-right::-webkit-scrollbar-track { background:transparent; }
+  .tracklist::-webkit-scrollbar-thumb, .pl-right::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
+  @media (max-width:900px){ .player { gap:26px; } }
+</style>
+</head>
+<body>
+
+<div id="home-bg"></div>
+
+<aside class="side">
+  <button class="brand" id="brand">Rui Kim<br>김루이</button>
+  <nav class="menu" id="menu"></nav>
+</aside>
+
+<div class="lang">
+  <button id="ko" class="on">KO</button>
+  <span class="sep">/</span>
+  <button id="en">EN</button>
+</div>
+
+<main>
+  <section class="page" id="work"></section>
+  <section class="page" id="text"></section>
+  <section class="page" id="cv"></section>
+</main>
+
+<script>
+var lang = "ko";
+var route = "home";
+var selected = null;
+var textOpen = "statement";
+
+// ← index.html 과 같은 폴더에 이 이름으로 이미지를 저장하면 홈 배경으로 뜸
+// (URL 이나 data URI 를 넣어도 됨)
+var HOME_BG = "home.jpg";
+
+var MENU = [ ["work","WORKS"], ["text","TEXTS"], ["cv","CV"] ];
+
+var WORKS = [
+  { id:"cider", year:"2026", kind:"v", tr:{ status:{ko:"제작 중",en:"in progress"} },
+    title:{ ko:"Cider", en:"Cider" },
+    medium:{ ko:"단채널 영상, 43인치 모니터", en:"Single-channel video, 43-inch monitor" },
+    images:[
+      "images/cider-1.png",
+      {cap:{ ko:["⟨Cider⟩ 스틸컷"], en:["<em>Cider</em> film stills"] }}
+    ], embed:"" },
+  { id:"fuga", year:"2026", kind:"v", tr:{ status:{ko:"제작 중",en:"in progress"} },
+    title:{ ko:"Fuga", en:"Fuga" },
+    medium:{ ko:"렌더링 단채널 영상", en:"Rendered single-channel video" },
+    images:[
+      "images/fuga-1.jpg","images/fuga-2.jpg","images/fuga-3.jpg","images/fuga-4.jpg",
+      {cap:{ ko:["⟨Fuga⟩ 스틸컷"], en:["<em>Fuga</em> film stills"] }}
+    ], embed:"" },
+  { id:"opera-glass", year:"2026", kind:"v", tr:{ ch:{ko:"단채널",en:"Single-channel"}, run:"23′06″", res:"FHD", col:{ko:"흑백",en:"b&w"}, snd:{ko:"사운드",en:"sound"}, fps:"15fps" },
+    title:{ ko:"Opera Glass on the Teatro Anatomico di Padova 1595", en:"Opera Glass on the Teatro Anatomico di Padova 1595" },
+    medium:{ ko:"단채널 영상, 고정 프로젝션, 사운드", en:"Single-channel video, fixed projection, sound" },
+    images:[
+      "images/opera-0.png","images/opera-1.png",
+      {cap:{ ko:["최초의 해부학 극장인 '파도바 해부학 극장'을 3D로 모델링하고, 모델을 향해 어안 카메라를 천천히 돌리며 촬영한다. 해부학 극장은 시체와 지식이라는 한 점을 향해 객석이 둘러선 건축이다. Opera Glass on the Teatro Anatomico di Padova 1595는 그 단일한 원근을 어안 렌즈를 통해 휘어지도록 한다. 카메라의 초점은 가장 먼 곳에 맞추어, 가까이 다가온 것은 흐려지고 어둠에 가려져 매번 중심이 검게 비워지도록 한다. 어안 렌즈가 만드는 둥근 화면은 때때로 둥근 초음파 사진을 닮은 이미지를 산출한다.","사운드는 글룩의 〈Orfeo ed Euridice〉 중 '에우리디체 없이 나는 어찌하리'의 아리아와 반주를 극저음의 비프음으로 재구성했다. 반주는 아리아 보컬 라인보다 한 옥타브 높게 구성해, 노래를 뒷받침하던 반주가 위로 올라오도록 한다. 극저음의 비프로 환원하고 옥타브를 전치하는 조작은 목소리의 구슬픈 정서를 벗겨내고, 비통한 가사와 대비되는 'Che farò senza Euridice?'의 장조 음계를 드러낸다."],
+             en:["Opera Glass on the Teatro Anatomico di Padova 1595","The Teatro Anatomico di Padova, the first anatomical theatre, is modeled in 3D, and a fisheye camera is turned slowly toward the model as it films. The anatomical theatre is an architecture whose seating encircles a single point: the corpse and knowledge. Opera Glass on the Teatro Anatomico di Padova 1595 lets that single perspective bend through the fisheye lens. The camera focuses on the farthest point, so that whatever comes near blurs and is hidden in darkness, and each time the center is emptied into black. The round frame the fisheye lens produces at times yields an image resembling a round ultrasound photograph.","For the sound, the aria \"Che farò senza Euridice?\" from Gluck's Orfeo ed Euridice, with its accompaniment, is reconstructed as extremely low beep tones. The accompaniment is set an octave above the vocal line, so that the accompaniment which once supported the singing rises upward. Reducing the sound to sub-bass beeps and transposing the octave strips away the mournful affect of the voice, exposing the major key of \"Che farò senza Euridice?\" against the grief of the text."] }, indent:true},
+      "images/opera-2.png","images/opera-3.png","images/opera-4.png","images/opera-5.png",
+      {cap:{ ko:["⟨Opera Glass on the Teatro Anatomico di Padova 1595⟩ 스틸컷"], en:["<em>Opera Glass on the Teatro Anatomico di Padova 1595</em> film stills"] }}
+    ],
+    embed:"https://player.vimeo.com/video/1208031559?badge=0&autopause=0&player_id=0&app_id=58479" },
+  { id:"ecco", year:"2026", kind:"v", tr:{ ch:{ko:"2채널",en:"2-channel"}, run:"18′23″", res:"2CH FHD", col:{ko:"컬러",en:"color"}, snd:{ko:"사운드",en:"sound"}, fps:"24fps" },
+    title:{ ko:"Ecco", en:"Ecco" },
+    medium:{ ko:"2채널 영상 설치, 회전 프로젝터, 아두이노 제어 조명, 사운드",
+             en:"Two-channel video installation, rotating projector, Arduino-controlled light, sound" },
+    images:[
+      "images/ecco-1.png",
+      "images/ecco-2.jpg",
+      {cap:{ ko:["⟨Ecco⟩ film still"], en:["<em>Ecco</em> film still"] }, style:"margin-top:-8px;"},
+      {gap:20},
+      {cap:{ ko:["⟨Ecco⟩(2026)는 현실에서 좀처럼 마주보지 않는 카메라와 조명의 관계를, 오르페우스 신화 속 마주보지 못하는 금기에 빗대어 구성한 투채널 영상 설치이다. 한 채널에는 카메라가 응시하는 조명이, 다른 채널에는 조명이 드리운 카메라의 그림자가 나타나며, 두 화면은 서로의 시점을 마주한다.","오르페우스를 주제로 한 오페라의 아리아가 성악 보컬로이드로 재구성되어 흐르고, 변화하는 영상의 조도와 천천히 회전하는 프로젝터에 의해 전시 공간의 경계는 매 순간 다시 그려진다."],
+             en:["<em>Ecco</em> is a two-channel video installation that stages the relationship between camera and light, a pair that rarely face each other within the conditions of filming. This relationship is likened to the taboo against turning back in the Orpheus myth.","One channel shows the light the camera gazes upon. The other shows the camera as shadow, cast by that light. The two projections are placed face to face. An aria from an opera on Orpheus, reconstructed with an operatic Vocaloid, runs throughout. The boundaries of the exhibition space are continuously redrawn by shifting light and the slow rotation of the projector."] }, indent:true},
+      "images/ecco-3.jpg",
+      {cap:{ ko:["Ecco (channel 2 view)"], en:["<em>Ecco</em> (channel 2 view)"] }},
+      "images/ecco-4.jpg","images/ecco-5.jpg","images/ecco-6.jpg","images/ecco-7.jpg","images/ecco-8.jpg",
+      {cap:{ ko:["Ecco (channel 1 view)", "전시 전경 \"Ecco\", K-Art space, 2026"], en:["<em>Ecco</em> (channel 1 view)", "Installation view \"Ecco\", K-Art space, Seoul, 2026"] }}
+    ],
+    embed:"https://player.vimeo.com/video/1207466297?title=0&byline=0&portrait=0&badge=0&autopause=0&player_id=0&app_id=58479" },
+  { id:"fe", year:"2025", kind:"o", tr:{ mat:{ko:"가죽, 디하이드로미르세놀, 솔트 어코드, 갈바넘, 카스토레움, 블랙 페퍼, 벤조인, 머스크",en:"leather, dihydromyrcenol, salt accord, galbanum, castoreum, black pepper, benzoin, musk"}, siz:{ko:"",en:""} },
+    title:{ ko:"Fe", en:"Fe" },
+    medium:{ ko:"후각 설치, 수조, 향", en:"Olfactory installation, water pool, scent" },
+    images:[
+      "images/fe-1.jpg",
+      {cap:{ ko:["Fe는 철분의 화학기호이자 향 작업이다. 인간의 신체와 사물이 모두 가지고 있는 철분의 향을 생각하며 조향했다. 동물성 노트와 메탈 노트를 섞어 만든 향을 영상이 상영되는 동안 공간에 천천히 스미게 하여, 관객으로 하여금 인간과 사물의 경계를 모호하게 한다."],
+             en:["Fe is the chemical symbol for iron and also a scent work. It was composed with the iron scent that both the human body and objects contain in mind. The scent, made by mixing animal and metal notes, slowly permeates the space while the video is screened, blurring, for the viewer, the boundary between human and object."] }, indent:true},
+      "images/fe-2.jpg",
+      {cap:{ ko:["K-Arts Department of Fine Arts 2026 MFA Degree Show Installation view"], en:["K-Arts Department of Fine Arts 2026 MFA Degree Show Installation view"] }}
+    ], embed:"" },
+  { id:"limbus", year:"2025", kind:"o", tr:{ mat:{ko:"나무, 실리콘, 아크릴, 전구",en:"wood, silicone, acrylic, bulb"}, siz:{ko:"53×26×10cm",en:"53×26×10cm"} },
+    title:{ ko:"Limbus", en:"Limbus" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《Pull the camera back more… Now it's near the retina》 전시 전경, 팩션, 서울, 2025."],
+              en:["<em>Pull the camera back more… Now it's near the retina</em> Installation view, Faction, Seoul, 2025."] },
+    images:[
+      "images/limbus-1.jpg",
+      {cap:{ ko:["《Limbus》는 레진을 뜨고 난 실리콘 몰드로서, 화면 속 망막 앞 광선과 혈관 모델을 3D 프린팅을 거쳐 물리적 표면으로 옮긴 것이다. 나는 소임을 다한 이 몰드를 관에 눕혔다."],
+             en:["<em>Limbus</em> is a silicone mold left over after casting resin; through 3D printing, it carries onto a physical surface the model of the light rays and blood vessels in front of the retina within the screen. I laid this mold, its purpose fulfilled, in a coffin."] }, indent:true},
+      "images/limbus-2.jpg","images/limbus-3.jpg","images/limbus-4.jpg"
+    ], embed:"" },
+  { id:"pyknolepsy", year:"2025", kind:"v", tr:{ ch:{ko:"단채널",en:"Single-channel"}, run:"15′43″", res:"FHD", col:{ko:"컬러",en:"color"}, snd:{ko:"사운드",en:"sound"}, fps:"24fps" },
+    title:{ ko:"Pyknolepsy", en:"Pyknolepsy" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《Pull the camera back more… Now it's near the retina》 전시 전경, 팩션, 서울, 2025."],
+              en:["<em>Pull the camera back more… Now it's near the retina</em> Installation view, Faction, Seoul, 2025."] },
+    images:[
+      "images/pyk-0.png",
+      {cap:{ ko:["1인칭의 눈을 통해 한 사람의 과거로 간다. 영상은 눈의 깜빡임을 따라 간헐적으로 화면을 채우는 시지각의 미세한 결함들을 몽타주로 환원시킨다. 일상적 풍경과 시야의 균열에서 영화-기계적 아름다움을 발견하고자 한다."],
+             en:["Through a first-person eye, it goes into one person's past. Following the blinks of the eye, the video reduces into montage the minute defects of visual perception that intermittently fill the screen. It seeks to find a cinematic-mechanical beauty in everyday scenery and in the cracks of vision."] }, indent:true},
+      "images/pyk-1.png","images/pyk-2.png","images/pyk-3.png","images/pyk-4.png","images/pyk-5.png",
+      {cap:{ ko:["⟨Pyknolepsy⟩ 스틸컷"], en:["<em>Pyknolepsy</em> film stills"] }},
+      "images/pyk-6.jpg","images/pyk-7.jpg","images/pyk-8.jpg","images/pyk-9.png"
+    ],
+    embed:"https://player.vimeo.com/video/1207465718?badge=0&autopause=0&player_id=0&app_id=58479" },
+  { id:"dacryscope", year:"2025", kind:"v", tr:{ ch:{ko:"단채널",en:"Single-channel"}, run:"12′30″", res:"FHD", col:{ko:"컬러",en:"color"}, snd:{ko:"사운드",en:"sound"}, fps:"24fps" },
+    title:{ ko:"Dacryscope Lab (2025.ver)", en:"Dacryscope Lab (2025.ver)" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《2026 한국예술종합학교 조형예술과 전문사 졸업전시》 전시 전경, K-Arts space, 서울."],
+              en:["<em>K-Arts Department of Fine Arts 2026 MFA Degree Show</em> Installation view, K-Arts space, Seoul, 2026."] },
+    images:[
+      "images/dacry--1.png",
+      {cap:{ ko:["다크라이스코프(Dacryscope)는 눈물 또는 눈물샘과의 관계를 나타내는 접두어 'Dacry-'와 보는 기계를 뜻하는 '-scope'를 합성한 단어로 3D 가상 환경 속에서 시야의 신체성을 복원하기 위해 작가가 개발한 모델의 이름이다.","작가는 렌즈 기반 화면에서 제거되는 실제 시야의 신체적 요소와 정서적 영향을 시각적 비체로 명명하고, 눈 깜빡임, 눈물, 시력 저하와 교정, 정서에 따른 눈의 심도 등을 연구하여 순간적인 암전과 눈물에 따른 왜곡이 생기는 가상 카메라를 만든다."],
+             en:["Dacryscope is a word combining the prefix 'Dacry-' (denoting a relation to tears or the tear gland) and '-scope' (meaning a machine for seeing); it is the name of a model the artist developed to restore the bodily nature of vision within a 3D virtual environment.","The artist names, as visual abjects, the bodily elements and emotional effects of actual vision that the lens-based screen erases; by studying eye blinks, tears, the deterioration and correction of eyesight, and the eye's depth of field according to emotion, the artist builds a virtual camera in which momentary blackouts and tear-driven distortions occur."] }, indent:true},
+      "images/dacry-0.jpg","images/dacry-1.jpg","images/dacry-2.jpg","images/dacry-3.jpg",
+      {cap:{ ko:["⟨Dacryscope Lab⟩ 스틸컷"], en:["<em>Dacryscope Lab</em> film stills"] }},
+      "images/dacry-4.jpg",
+      {cap:{ ko:["《Pull the camera back more… Now it's near the retina》 전시 전경, 팩션, 서울, 2025."],
+             en:["<em>Pull the camera back more… Now it's near the retina</em> Installation view, Faction, Seoul, 2025."] }},
+      "images/dacry-5.jpg","images/dacry-6.jpg","images/dacry-7.jpg"
+    ],
+    embed:"https://player.vimeo.com/video/1207464608?badge=0&autopause=0&player_id=0&app_id=58479" },
+
+  // 2024,
+  { id:"hall", year:"2025", kind:"v", tr:{ ch:{ko:"2채널",en:"2-channel"}, run:"5′30″", res:"2CH FHD", col:{ko:"컬러",en:"color"}, snd:{ko:"무음",en:"mute"}, fps:"24fps" }, noTitle:true, videoAspect:"32/9",
+    title:{ ko:"Hall", en:"Hall" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《2026 한국예술종합학교 조형예술과 전문사 졸업전시》 설치 전경, K-Arts space, 서울."],
+              en:["<em>K-Arts Department of Fine Arts 2026 MFA Degree Show</em> Installation view, K-Arts space, Seoul, 2026."] },
+    images:[
+      {src:"images/hall-0.png", w:"33.33%"},
+      {cap:{ ko:["강렬한 빛을 바라보았을 때 안구 내부에 생기는 혈관의 잔상을 재현하기 위해 3D 모델을 설계하고 촬영한 영상이다. 프루킨예 나무현상, 비문증, 안내섬광 등의 내시현상을 연출한다. 각막과 망막 사이 시야를 방해하는 증상들이 화면의 빛과 어둠을 결정한다."],
+             en:["This is a video made by designing and filming a 3D model to reproduce the afterimages of blood vessels that form inside the eyeball when looking at intense light. It stages entoptic phenomena such as the Purkinje tree, floaters, and phosphenes. The symptoms that obstruct vision between the cornea and the retina determine the light and darkness of the screen."] }, indent:true},
+      "images/hall-1.jpg","images/hall-2.jpg","images/hall-3.jpg",
+      {cap:{ ko:["⟨Hall⟩ 스틸컷"], en:["<em>Hall</em> film stills"] }},
+      {gap:20},
+      "images/hall-4.jpg","images/hall-5.jpg","images/hall-6.jpg","images/hall-7.jpg",
+      {cap:{ ko:["《Pull the camera back more… Now it's near the retina》 설치 전경, 팩션, 서울, 2025."],
+             en:["<em>Pull the camera back more… Now it's near the retina</em> Installation view, Faction, Seoul, 2025."] }},
+      "images/hall-9.jpg","images/hall-10.jpg"
+    ],
+    embed:"https://player.vimeo.com/video/1085771023?badge=0&autopause=0&player_id=0&app_id=58479" },
+  { id:"crystal-retina", year:"2024", kind:"o", tr:{ mat:{ko:"레진",en:"resin"}, siz:{ko:"가변 크기",en:"variable dimensions"} },
+    title:{ ko:"Crystal Retina Series", en:"Crystal Retina Series" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《Pull the camera back more… Now it's near the retina》 설치 전경, 팩션, 서울, 2025."],
+              en:["<em>Pull the camera back more… Now it's near the retina</em> Installation view, Faction, Seoul, 2025."] },
+    images:[
+      "images/crystal-0.png",
+      "images/crystal-1.png",
+      {cap:{ ko:["⟨Crystal retina (frame 4020)⟩ 레진. 50×23×3cm. 2024."], en:["<em>Crystal retina (frame 4020)</em> resin. 50×23×3cm. 2024."] }},
+      "images/crystal-2.png",
+      {cap:{ ko:["⟨Crystal retina (frame 4251)⟩ 레진. 50×23×3cm. 2024."], en:["<em>Crystal retina (frame 4251)</em> resin. 50×23×3cm. 2024."] }},
+      "images/crystal-3.png",
+      {cap:{ ko:["⟨Crystal retina (frame 4489)⟩ 레진. 50×23×3cm. 2024."], en:["<em>Crystal retina (frame 4489)</em> resin. 50×23×3cm. 2024."] }},
+      "images/crystal-4.jpg","images/crystal-5.jpg","images/crystal-6.jpg"
+    ], embed:"" },
+  { id:"paputa", year:"2024", kind:"v", tr:{ ch:{ko:"단채널",en:"Single-channel"}, run:"17′43″", res:"FHD", col:{ko:"컬러",en:"color"}, snd:{ko:"사운드",en:"sound"}, fps:"24fps" },
+    title:{ ko:"Paputa", en:"Paputa" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《Pull the camera back more… Now it's near the retina》 전시 전경, 팩션, 서울, 2025."],
+              en:["<em>Pull the camera back more… Now it's near the retina</em> Installation view, Faction, Seoul, 2025."] },
+    images:[
+      "images/paputa-0.png",
+      {cap:{ ko:["집안에 방치했던 거대한 조각을 처리하는 과정을 담고 있다. 동시에 실체가 없는 2D 애니메이션 주인공에게 쓴 편지를 읊는다. 처치곤란한 조각과 신체의 무게를 교차하여 생각한다. 그리고 평평한 스크린 속 실재하지 않으며, 무게 없이 남아 있는 것들을 마주한다."],
+             en:["It documents the process of disposing of a huge sculpture that had been left neglected in the house. At the same time, it recites a letter written to the protagonist of a 2D animation, who has no physical substance. It thinks by crossing the weight of the unmanageable sculpture with the weight of the body. And it confronts the things that, within the flat screen, do not exist and yet remain without weight."] }, indent:true},
+      "images/paputa-1.jpg","images/paputa-2.jpg",
+      {cap:{ ko:["⟨Paputa⟩ 스틸컷"], en:["<em>Paputa</em> film stills"] }},
+      "images/paputa-6.jpg","images/paputa-7.jpg"
+    ],
+    embed:"https://player.vimeo.com/video/1207445326?badge=0&autopause=0&player_id=0&app_id=58479" },
+  { id:"a-good-room", year:"2023", kind:"v", tr:{ ch:{ko:"단채널",en:"Single-channel"}, run:"3′30″", res:"SVGA", col:{ko:"컬러",en:"color"}, snd:{ko:"무음",en:"mute"}, fps:"24fps" }, noTitle:true, videoAspect:"4/3", videoWidth:"480px",
+    title:{ ko:"A Good Room", en:"A Good Room" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《Loose me tight》 전시 전경, 갤러리 175, 서울, 2023."],
+              en:["<em>Loose me tight</em> installation view, Gallery 175, Seoul, 2023."] },
+    images:["images/a-good-room-1.jpg","images/a-good-room-2.jpg",
+            {cap:{ ko:["⟨A Good Room⟩ 스틸컷"], en:["<em>A Good Room</em> film stills"] }, w:480},
+            "images/a-good-room-3.jpg","images/a-good-room-4.jpg"],
+    embed:"https://player.vimeo.com/video/1207111663?badge=0&autopause=0&player_id=0&app_id=58479" },
+
+  // 2025,
+  { id:"leaking-house", year:"2023", kind:"o", tr:{ mat:{ko:"석고, 철사, 바니시, 헤어피스",en:"plaster, wire, varnish, hairpiece"}, siz:{ko:"145×123×2cm",en:"145×123×2cm"} },
+    title:{ ko:"새는 집", en:"Leaking House" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《Loose me tight》 전시 전경, 갤러리 175, 서울, 2023."],
+              en:["<em>Loose me tight</em> installation view, Gallery 175, Seoul, 2023."] },
+    images:["images/leaking-house-1.jpg","images/leaking-house-2.jpg","images/leaking-house-3.jpg"], embed:"" },
+  { id:"mother-cave", year:"2022", kind:"o", tr:{ mat:{ko:"석고, 임부팬티",en:"plaster, maternity underwear"}, siz:{ko:"33×30×20cm",en:"33×30×20cm"} },
+    title:{ ko:"엄마 동굴", en:"Mother Cave" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《Loose me tight》 전시 전경, 갤러리 175, 서울, 2023."],
+              en:["<em>Loose me tight</em> installation view, Gallery 175, Seoul, 2023."] },
+    images:["images/mother-cave-1.jpg","images/mother-cave-2.jpg","images/mother-cave-3.jpg"], embed:"" },
+
+  // 2022,
+  { id:"hole-2", year:"2022", kind:"o", tr:{ mat:{ko:"석고 붕대, 경량 점토, 철사",en:"plaster bandage, lightweight clay, wire"}, siz:{ko:"51×50×110cm",en:"51×50×110cm"} },
+    title:{ ko:"Hole no.2", en:"Hole no.2" },
+    medium:{ ko:"", en:"" },
+    caption:{ ko:["《Loose me tight》 전시 전경, 갤러리 175, 서울, 2023."],
+              en:["<em>Loose me tight</em> installation view, Gallery 175, Seoul, 2023."] },
+    images:["images/hole-2-1.jpg","images/hole-2-2.jpg","images/hole-2-3.jpg","images/hole-2-4.jpg"], embed:"" },
+];
+
+var STATEMENT = {
+  ko:[ "저는 마주보기의 불가능성을 의심하며 작업합니다. 빛과 카메라, 눈과 세상, 인간과 인간, 인간과 다른 존재, 자신과 욕망. 서로를 마주 보는 대신 언제나 무언가를 좇는 관계들. 저는 이 좇음이 시각의 본질이라고 생각합니다. 본다는 것은 대상에 도달하지 못한 채 향하고 헤매이는 운동입니다.",
+       "작업에서, 3D는 봄이 아직 구성되지 않은 영도(零度)로, 마주봄이 성립하기 이전으로 되돌아갈 수 있는 조건입니다. 이 영도의 공간에서 카메라와 빛, 눈과 대상을 다시 배열하고, 그 산출물로서 영상을 제작합니다. 봄은 여기서 완결되지 못한 채 계속되는 헤메임으로 남습니다.",
+       "한편으로 이 지연은 건축의 것이기도 합니다. 코너를 돌고 문을 열고 들어가야 비로소 파악되는 공간처럼, 영상과 건축은 한 눈에 파악되지 않는다는 성질을 공유합니다. 때문에 저는 건축의 내부와 전시장 전체를 영상이 상영되는 조건으로 바라보며, 공간이 영상에 의해 재분배되고 그 경계가 매 순간 다시 그려지는 장면을 실험합니다." ],
+  en:[ "I work by doubting the possibility of facing something head-on. Light and camera, eye and world, human and human, human and other beings, self and desire. Relations that, instead of facing one another, always chase after something. I believe this chasing is the essence of seeing. To see is a movement of reaching toward and wandering without ever arriving at its object.",
+       "I work through this movement in 3D virtual space. 3D is a degree zero where seeing has not yet been constituted, a condition that can return to the moment before facing takes hold. In this space of degree zero I rearrange camera and light, eye and object, and produce video as what comes out of it. Here seeing remains an unfinished wandering that continues without completion.",
+       "This deferral also belongs to architecture. Like a space grasped only after turning a corner and opening a door to step inside, video and architecture share the quality of not being grasped at a glance. For this reason I regard the interior of architecture and the exhibition space as a whole as conditions under which video is projected, and I experiment with scenes in which space is redistributed by video and its boundaries are drawn anew at every moment." ]
+};
+
+var TEXTS = [
+  {
+    "id": "program-corr-indiespace",
+    "title": {
+      "ko": "《우리가 보는 동안에 서신교환×인디스페이스》 1. (비)순응의 이미지, 시스템을 내파하기 | 임현영",
+      "en": "《A Pressing Need to Train the Eye: Correspondencia(s) × Indiespace》 1. Images of (Non)compliance, Imploding the System | Lim Hyunyoung"
+    },
+    "body": {
+      "ko": [
+        "스크린이 투사하는 이미지란 무엇이며, 그것은 현실을 어떠한 방식으로 재현하는가? 또한 현실은 재현된 이미지에 의해 다시금 어떻게 재구축되는가? 오늘날의 이미지는 세계와 주체를 매개하는 동시에 세계에 대한 근원적 의심을 야기하는 양면적 기능을 수행한다. 기술 환경과 사회적 토대, 지각의 지평이 매 순간 최신 버전으로 갱신됨에 따라, 이미지 역시 존재론적·인식론적 변모를 거듭한다. 이와 동시에, 이미지는 폐쇄된 생산과 유통의 회로 안에서 상품화되어 자본주의의 지배 질서를 공고히 하는 도구로 전락하기도 한다. 이러한 고착을 타파하기 위해서는 이미지 네트워크 내부에 비판적 거리를 확보해야 하지만, 원거리로 초점을 이동하는 과정에서 우리는 너무 많이 본 나머지 방향감각을 상실하고는 한다.",
+        "프로그램 1. (비)순응의 이미지, 시스템을 내파하기는 우리가 접하는 이미지가 결코 동어반복과 폭력성, 그리고 이데올로기로부터 자유로울 수 없음을 폭로한다. 공동체의 유행을 반영하는 밈(meme)은 사회 부조리를 풍자하는 데 활용되기도 하지만, 이미지 본연의 역사적 맥락을 탈각시켜 즉각적인 경험과 감각만이 남게 만든다(〈루프〉(2025)). 또한 이미지는 전쟁과 스포츠, 게임 등 가상과 실제를 가로지르며 발생하는 폭력을 재생산하고, 현미경과 드론의 시야를 능수능란하게 오가며 관찰의 권력을 전유한다(〈애니〉(2025)). 이로부터 우리는 기술적 진보가 더 선명한 응시를 보장하는 것이 아니라, 오히려 보는 행위의 무력함을 선사하고 있는 것은 아닌지 의심해야 한다. 나아가 그 의심을 토대로, 리얼리티의 개념을 규모나 해상도에 비례해서가 아닌, 기술적 실패가 일어나는 지점으로부터 다시 정의해야 한다(〈Pyknolepsy〉(2025)). 매끈하고 편평한 스크린 속 이미지가 탈중심화된 주체와 추상화된 역사의 표상이라면, 이를 돌파할 유일한 길은 이미지가 스스로를 붕괴시키며 그 이면으로 이행하는 과정 그 자체에 있을 것이기 때문이다.",
+        "h:김루이 — 〈피크노렙시 Pyknolepsy〉 2025, 15min",
+        "‘화면을 반대로 뒤집으면 카메라가 태어날 것이고, 카메라는 눈을 태어나게 할 것이다.’ 도입부의 문장은 〈Pyknolepsy〉가 시각 예술의 영역에서 유서 깊게 다뤄져 온 ‘보는 방식’에 관한 문제를 다루리라는 것을 예고한다. 다만 영상은 보는 주체와 보이는 대상이라는 이항적 대립 대신, 세계(대상)와 주체, 그리고 이 둘을 매개하는 카메라라는 세 개 항의 선형적 연결을 바탕으로 카메라의 기계적 시각과 인간의 눈이 일체화되었을 때의 시야를 재현한다. 이는 즉각적으로 스크린(screen)이 눈의 수정체에 이식된 상황을 떠올리게 하는데, 그렇다고 해서 주체가 존재론적 위협으로부터 벗어나게 되는 것은 아니다. 이제 그는 스크린과 동시에 파괴될 위험에 처하며, 이에 대처하는 영상 속 세계는 여러 겹의 껍질이 쌓인 다중 스크린의 형태를 취하게 된다. “사용자의 의도에 따라 스크린을 통해 그렇게 보이도록 흉내내는” 3D 모델링 프로그램은 진짜와 가짜의 구분을 없앤 모의 세계를 구현한다.<sup>3</sup> 완성된 후에도 계속해서 수정 가능하고, 삭제했다 다시 불러올 수 있으며, 멀리 그리고 가까이, 여러 각도에서 관람할 수 있는 세계. 한편, 한때 영미권에서는 특수효과를 “존재하지 않는 것을 필름에 담는 일”로 불렀다.<sup>4</sup> 이를 반영하듯, 〈Pyknolepsy〉의 특수효과는 눈을 깜빡일 때마다 발생하는 공백, 시야와 기억에서 속절없이 누락되어버린 어둠을 복구한다. 제목인 ‘피크노렙시’는 ‘빈번한’을 뜻하는 그리스어 피크노스(picnos)와 ‘발작’을 뜻하는 그리스어 렙시스(lepsis)의 합성어다. 인간의 의식에서 일어나는 빈번한 발작은 영화적 차원에서 필름의 끊김과 보정에 해당하며, 3D 렌더링 시스템상에서는 계산의 실패에 해당한다. 마지막 장면에서 화면 전체를 뒤덮는 흰색 점의 정체는 픽셀의 오류가 만들어낸 노이즈다. 그러나 누군가의 눈에 그것은 고대하던 눈송이이다. 그리고 우리는 대개 하나의 차원에 갇힌 채로 세상을 본다."
+      ],
+      "en": [
+        "What is the image that the screen projects, and in what manner does it represent reality? And how, in turn, is reality reconstructed by the represented image? The image today performs a double function: it mediates between the world and the subject while at the same time provoking a fundamental doubt about the world. As the technological environment, the social ground, and the horizon of perception are updated to their latest version at every moment, the image too undergoes ontological and epistemological transformation. At the same time, the image is commodified within a closed circuit of production and circulation, degenerating into a tool that consolidates the ruling order of capitalism. To break this fixity one must secure a critical distance inside the network of images; yet in the course of shifting focus to the far view, we tend to lose our sense of direction from having seen too much.",
+        "Program 1. Images of (Non)compliance, Imploding the System exposes the fact that the images we encounter can never be free of tautology, of violence, and of ideology. The meme, which reflects the fashions of a community, is put to use in satirizing social absurdity, yet it strips the image of its own historical context so that only immediate experience and sensation remain (〈Loop〉(2025)). The image also reproduces the violence that arises across the virtual and the actual — war, sport, games — and appropriates the power of observation, moving deftly between the vision of the microscope and that of the drone (〈Annie〉(2025)). From this we must suspect that technological progress does not guarantee a clearer gaze but rather delivers the powerlessness of the act of seeing. Further, on the basis of that suspicion, the concept of reality must be redefined not in proportion to scale or resolution but from the point at which technical failure occurs (〈Pyknolepsy〉(2025)). For if the image within the smooth, flat screen is the representation of a decentered subject and an abstracted history, the only way to break through it will lie in the very process by which the image collapses itself and passes over to its reverse side.",
+        "h:Rui Kim — 〈Pyknolepsy〉 2025, 15min",
+        "‘Turn the screen the other way round and a camera will be born, and the camera will give birth to an eye.’ The sentence at the opening announces that 〈Pyknolepsy〉 will take up the question of ‘ways of seeing,’ long and venerably treated in the field of visual art. The video, however, represents the field of vision at the moment when the mechanical sight of the camera and the human eye become one, on the basis of a linear connection of three terms — the world (object), the subject, and the camera that mediates the two — rather than a binary opposition of seeing subject and seen object. This immediately calls to mind a situation in which the screen has been implanted into the lens of the eye; yet this does not release the subject from ontological threat. Now he stands at risk of being destroyed together with the screen, and the world within the video, coping with this, takes the form of a multiple screen in which layer upon layer of shells has accumulated. The 3D modeling program, which “imitates, through the screen, appearing that way according to the user’s intention,” realizes a simulated world in which the distinction between the real and the fake has been abolished.<sup>3</sup> A world that can be revised endlessly even after it is completed, deleted and called back again, and viewed from far and from near, at many angles. Meanwhile, in the English-speaking world special effects were once called “putting onto film that which does not exist.”<sup>4</sup> As if reflecting this, the special effects of 〈Pyknolepsy〉 restore the blank that occurs with every blink of the eye, the darkness helplessly dropped from vision and from memory. The title, ‘pyknolepsy,’ is a compound of the Greek picnos, meaning ‘frequent,’ and the Greek lepsis, meaning ‘seizure.’ The frequent seizure that occurs in human consciousness corresponds, at the cinematic level, to the break and the correction of film, and, within a 3D rendering system, to the failure of calculation. The identity of the white dots that cover the entire screen in the final scene is noise produced by pixel error. Yet to someone’s eye it is the long-awaited snow. And we, for the most part, see the world while confined to a single dimension."
+      ]
+    },
+    "notes": {
+      "ko": [
+        "3. 김루이 작가 노트 및 『Pull the camera back more… Now it’s near the retina.』, 동명의 개인전 도록(서울: 서울문화재단, 2025), 170.",
+        "4. 폴 비릴리오, 『소멸의 미학』, 김경온 옮김(서울: 연세대학교출판부, 2004), 37."
+      ],
+      "en": [
+        "3. Rui Kim, artist note, and 『Pull the camera back more… Now it’s near the retina.』, catalogue of the solo exhibition of the same name (Seoul: Seoul Foundation for Arts and Culture, 2025), 170.",
+        "4. Paul Virilio, 『The Aesthetics of Disappearance』, trans. Kim Gyeong-on (Seoul: Yonsei University Press, 2004), 37."
+      ]
+    },
+    "sign": {
+      "ko": [
+        "《우리가 보는 동안에》 프로그램 노트 발췌"
+      ],
+      "en": [
+        "Excerpt from the 《A Pressing Need to Train the Eye》 program note"
+      ]
+    }
+  },
+  {
+    "id": "essay-kym-2025",
+    "title": {
+      "ko": "「셀피의 저편에서: 김루이 작업에서 고독의 문제에 관한 생각」 | 김여명",
+      "en": "「Beyond the Selfie: Reflections on Solitude in Rui Kim’s Work」 | Yeomyeong Kim"
+    },
+    "body": {
+      "ko": [
+        "소음과 함께 철문이 열린다. 집 안으로 들어서면 어디선가 본 듯한 풍경이다. 여기 저기를 둘러 보지만 사람은 없는 것 같다. 그러니까, 나를 포함해서. 아니다, 눈꺼풀은 있나. 아니다, 머리카락은 있는 건가. 아니……. 바깥에서 자동차 한 대가 큰 소리를 내고 지나간다. 냉장고, 전자레인지, 그리고 마지막으로, 아니, 우선은 눈을 감아 보자. 기다리다 보면 오겠지. 그러나 아무도 오지 않는다. 이 세계에는 사람이 없나 보다. 있다 하더라도 그들과 소통하는 일은 쉽지 않을 테니 차라리 없는 것이 나을 수도. 대신 이 세계에는 기계가 있다. 적어도 기계가. 어두운 전시 안으로 걸어들어가 본다. 이 글은 김루이 개인전 《Pull the camera back more...Now it's near the retina.》 이후에도 남아 있는 몇 가지 생각들을 모은다.",
+        "김루이의 세계는 “모든 게 추락을 합의하는 세계(〈파푸타(Paputa)〉(2024))”다. 이 세계에는 교감할 수 있는 사람이 거의 등장하지 않는다. 존재하는 유일한 사람은 화면을 보고 있는 나뿐인데, 이 사람조차도 우리가 알고 있는 ‘그’ 사람과는 많은 의미에서 다르다. 〈피크노렙시(Pyknolepsy)〉(2025)에서 나는 텅 빈 집안을 돌아다니면서 무언가를 찾는다. 무엇을 찾는지 알 수 없고, 집에는 생활감이 거의 없다. 누구도, 어떤 것도 없었고, 무언가 있었다는 증거도 거의 제거된 것처럼 보인다. 찾을 수 있는 증거는 오직 하나, 내가 여기 있다는 증거다. 눈앞에 내려앉아 시야를 방해하는 머리카락, 깜빡일 때마다 내려앉아 시야를 완전히 어둡게 하는 눈꺼풀(우리는 마치 누군가의 머릿속에 들어가 앉은 것처럼 깜빡일 때마다 내 주변이 어두웠다 밝아지는 것을 느낄 수 있다). 그러나 내 몸은 어디 있는지 보이지 않는다. 이런 것도 실존이라고 부를 수 있을까? 어떤 타인과도 마주하지 않기에 몸은 점차 투명해지고 마음만 부유하고 있을 뿐인 것을, 그런 것도 사람이라 부를 수 있을까. 김루이는 우리가 그를 사람이라 부를 수 있다/없다고 판단하기에 앞서 이미 그렇게 되어 버린 사람들이 있다고 주장한다. 어떤 사람들에게 삶은 다가올 내일이 아니라 유예된 어제에 불과할 뿐이라고.",
+        "q:“(...) 어쨌건 나는 살아 있는 동안은 평생 남겨져 있을 테니까 / 낳아졌다는 이유로 (...) (〈다크라이스코프 실험(Dacryscope Lab)〉(2025)”",
+        "물리적 차원과 실존적 차원 양쪽 모두에서 완전히 투명한 이 사람들에게 1인칭 시점으로 세상을 바라보는 것은 불가능에 가까운 일이다. 김루이는 자기 자신에게까지 투명해져 버린 사람들이 처한 상태를 이인증(depersonalizaion)<sup>*</sup>에 비유한다. 이런 상태는 카메라와 카메라 뒤의 사람 사이 상태와 유사한 부분이 있다. 카메라 기반 매체들에서 통용되는 원칙 중 하나는 카메라 뒤에 있는 사람이 화면 안에 등장하지 않는다는 것이다(이 원칙은 거울, 창문, 물 웅덩이, 타인의 눈동자 같은 다른 장치를 통해서만 넘어설 수 있다). 카메라 뒤의 사람은 카메라(제1의 항), 대상/피사체/세계(제2의 항)를 관계 맺게 하는 제3의 항이며 그 관계는 일반적인 매개와는 그 개념과 양상에 있어 약간의 차이가 있다.",
+        "우리가 ‘매개(mediate)’라는 단어를 사용할 때, 그것은 주로 중간(medium)에서 극단을 잇고 연결한다는 의미를 가진다. 예컨대 눈은 세계와 우리(의 인식)를 매개하며, 물리적으로나 실존적으로나 기능적으로나 세계와 우리 사이에 [세계-눈-사람]의 구조로 놓인다. 카메라 기반 매체의 경우, 우리가 카메라를 눈을 대신하는 것으로 간주하는 기존의 인식을 계속 가지고 생각해 본다면, 그 매개의 형태는 [세계-카메라-카메라 뒤의 사람]이 된다. 그러나 카메라 기반 매체에서 실질적인 매개의 작동은 이 도식을 따르지 않는다. 카메라 기반 매체에서 매개를 수행하는 것은 사실 카메라가 아니라 카메라 뒤의 사람이다. 카메라 뒤의 사람은 카메라와 세계 사이의 관계를 그 둘의 바깥에서 조율하며 매개하는, 있으면서도 있지 않은 기묘한 위치에 선다. 관계에 개입하지만 그 관계에 직접 연루되지는 않는, 세계와 카메라 바깥에 서 있는 자의 고독. 나는 이 바깥을 ‘셀피(selfie)의 저편’이라 부르고 싶다. 어느 쪽에도 속하지 않는 작업 속 화자가 이인증의 길목에 서는 것은 당연하게 느껴진다. 이제, 카메라 뒤의 사람은 3D 엔진에서 가상 카메라와 비슷한 무엇인가가 된다. 공간을 자유자재로 거닐며 환경에 영향을 주지만, 누구의 손에도 잡히지 않고 누구의 눈에도 보이지 않는다.",
+        "〈다크라이스코프 실험〉은 바로 이 시점, 셀피의 저편에 선 카메라 뒤 사람의 눈을 최대한 인간의 눈과 가깝게 만들어 보려는 작업이다. 깜빡이기, 다래끼, 눈썹과 뺨의 근육 움직임 등에 직관적인 수치값을 매기고 시야를 계산하는 이 작업은 통상 카메라가 발전해 나가는 방향을 역으로 거슬러오른다. 어떻게 하면 왜곡과 방해 없이 현실을 그대로 포착할 수 있을까 고민하며 더 맑고 깨끗하고 투명한 이미지를 얻기 위해 모든 세균을 제거한 위생적 3D 공간의 출발점인 그리드 위를 부유하는 가상 카메라. 사람들은 자주 카메라가 우리 몸으로부터 외화(外化)된 눈이라고 생각하지만, 사실 카메라는 단 한 번도 눈이 되기를 바란 적 없다. 인간의 눈은 강렬한 빛 앞에서 저절로 찡그려지는 시야, 비문증, 착시, 시야에 걸린 먼지와 머리카락, 눈물, 눈곱, 이물질, 병균, 망막 앞 수정체나 눈꺼풀 아래에서 일어나는 일들로 수없이 가로막힌다. 렌즈 위에 내려앉은 물기, 살짝 간 금, 먼지 같은 것들을 생각해 보면 카메라와 눈 사이 어느 정도의 공통 지반이 있다고 볼 수도 있겠지만, 작가가 주로 사용하는 3D 환경은 완벽한 멸균실이다. 카메라는 눈이 가지 못하는 곳들을 자유자재로 오가며 크리스탈 같은 이미지라는 약속을 향해 간다. 이 약속의 이행을 위해, 카메라는 자기 자신의 껍질마저 벗어 던지고 3D 엔진의 가상 카메라, 즉, 시점이 된다. 이제, 오히려 이제서야, 카메라는 인간과 같다. 공간을 자유자재로 거닐며 환경에 영향을 주지만, 누구의 손에도 잡히지 않고 누구의 눈에도 보이지 않는다.",
+        "이러한 역행 시도는 다른 작업들에서도 이어진다. 작가는 껍질을 벗어던지고 투명해지는 카메라와 불투명하고 껄끄러운 우리의 눈 사이에 〈Hall〉(2025)을 놓는다. 이미지와 물질, 또는 가상과 현실 사이를 매개하려는 것인지 그 매개를 끊어내려는 것인지, 시야를 방해하는 것들을 걷어내고 더 선명하고 깨끗한 위생적 이미지를 추구하는 방향을 역으로 거슬러 오르는 이 작업의 몇몇 장면들은 자처하여 껍질을 입는다. 〈Crystal Retina〉(2025) 시리즈는 가상의 눈(그렇다, 나는 눈과 카메라를 서로 대치할 수 있는 자리에 쓰고 있다)들이 물질을 입고 현실로 거슬러올라와 내려앉은 결과다. 전시장 한 켠에 놓인 〈Limbus〉(2025)는 투명한 조각들의 죽은 모체(母體)로 관을 연상시키는 짙은 색 나무 액자 안에 담겨 있다. 크리스탈과 같은 완벽함을 추구하는 매체들로 결함을 재현하려는 이 조각들 앞에서, 태어나기도 전에 죽은 것들, 살아 있지만 죽은 것과도 동일한 상태에 대해 다시 한번 생각해 본다.",
+        "그렇다면 이 역행(逆行)은 무엇을 위한 것일까? 인간보다 기계가 낫다는 말을 하기 위해? 눈과 카메라의 비교를 위해? 거기서 카메라의 광학적 우수함을 짚기 위해? 3D 엔진이 할 수 있는 놀라운 일들을 살피기 위해? 혹은 3D 기술이 어느 정도까지 발전했는지 알아보기 위해? 작업은 다시 바깥에 선 자의 매개 문제로 되돌아 온다. 나는 껍질을 벗고 카메라가 되고, 카메라에게는 껍질을 입히고 눈을 만들어 주는 (반)매개, 나는 기계들이 기꺼이 내 자리를 차지하도록 내버려 둔다. 그 대신 내가 얻는 것은…….",
+        "q:“3D Blender 2.8을 통해 처음으로 회색 그리드를 보았을 때가 생각난다. 태양, 카메라, 대상이 있었고, 중력, 바람, 마찰이 있었다. 그리고 모든 게 가짜였다. 순간 나는 정말로 환호했는데, 모든 기능이 마치 현실을 은유하기 위한 도구처럼 느껴졌기 때문이다. 3D 모델은 좌표에 따라 구부러진 텍스쳐 껍질일 뿐이다. 그것엔 영혼이 없고 뇌도 없다. 똥을 만들 장도 없으며 생명을 펌프질하는 심장도 없다. 오로지 사용자의 의도에 따라 스크린을 통해 그렇게 보이도록 흉내내는 기만적인 도구인 것이다. 그렇게, 모든 게 가짜이기 때문에 진실에 가까웠다. 한 겹 외피로 의도가 설명되는 대상이 더욱 인간을 진실하게 말해 주었기 때문에.” - 김루이 작가 노트(2025) 중 발췌",
+        "무엇보다 기계는 자기 내부와 외부 사이 정합성을 가진다. 시점이 된 카메라는 사물의 안쪽까지 가 닿을 수 있지만 사실 우리는 꼭 그렇게 할 필요도 없다. 내부는 외부를 작동시킨다는 하나의 목적을 가지고 디자인되었을 것이며, 3D 툴에서 이런 기획은 현실처럼 보이게 한다는 목적하에 모든 요소를 조율한다. 작가가 그리드의 진실함에 환호하는 것은 그곳이 상상한 모든 것을 만들어낼 수 있는 낙원이어서도 아니고 3D 환경이 가지는 기계적 아름다움에 매혹되어서도 아니다. 이 세계에서는 상대방의 마음에 대한 유추가 불필요하기 때문이다. 기계의 내부는 전선과 부품으로 복잡해 보이지만 이유 없이 존재하는 것은 원칙적으로 없어야 한다. 그러나 인간의 마음, 보이지도 않는 이것은 솔직하게 말하거나 표현하겠다는 의도나 결심, 다짐과는 무관하게 어떤 경우에도 ‘온전히’ 외재화될 수 없다. 드러나려는 몸과 달리 숨으려는 성질을 가진 마음의 불투명함 앞에서 우리는 고독에 잠길 뿐이다.",
+        "그러나 이 고독은 확장된 외로움 같은 것이 아니다. 이 고독은 결코 열리지 않을 타인의 마음 앞에 선 우리가, 영혼을 가진 자라면 어떻게든 감내하고 살아가야 하는 실존의 조건 중 하나로 이해되어야 할 필요가 있다. 주어진 환경을 돌이켜 볼 때 대부분의 사람들에게 고독은 극복되어야 할 것, 딛고 나아가야 할 것, 단계로 지나쳐가야 하는 것으로 여겨진다. 김루이 작업에서 보이는 역행은 고독은 극복되어야 할 대상이 아니다. 오히려 고독은, 사물들과 관계 맺는 하나의 방법이자 사물과 세계가 맺는 관계를 인간이 제3의 지대에서 마주했을 때 가장 얇은 시점으로 ‘축소’된 것 같은 기분이 들 때 겸허히 수용해야 하는 기후 같은 것이다. 이 기후 아래에서, 작가는 세계의 질서를 재편한다. 거기선 인간과 기계가 별반 다르지 않다."
+      ],
+      "en": [
+        "The iron door opens with a dull sound. When I step inside, the scene feels strangely familiar. I look around, but there seems to be no one. That is to say, including myself. Wait,  Are my eyelids still there? No, my hair? No…. A car passes with a deep roar. refrigerator, microwave, and lastly…no, first, let me close my eyes. If I wait, someone might come. But no one does. Maybe this world has no people. Even if there are, communication wouldn’t be easy. so, maybe it is better that way. Instead, this world has machines, at least, The machine. I walk deeper into the darkened exhibition space. This text gathers a few thoughts that lingered after  Rui Kim’s solo exhibition,《Pull the camera back more... Now it’s near the retina.》",
+        "Rui Kim’s world is “a world in which everything consents to falling” (Paputa, 2024). In this world, there are hardly any people who can empathize. The only person present is myself, looking at the screen, yet even this person, in many respects, is different from “that” person  we usually know. In Pyknolepsy (2025), I wander around  an empty house and search for something. It’s unclear what I’m looking for, and almost no sign of life in the house. There is no one, nothing, and even the evidence that something had existed seems nearly erased. The only trace I can find is only one - my own presence here. Hair falls on my eyes are obstructing my view, eyelids descend with every blink, darken my vision completely (we can feel the world darken and brighten as if we were sitting inside someone’s head). But, my own body is nowhere to be seen. Can this even be called existence? With no encounter with another, the body gradually becomes transparent, leaving only the mind adrift. Can that still be called a person? Rui suggests that, even before we decide whether it can be called a person, there are already those who have become exactly that. For some, life is not approaching tomorrow, but merely a postponed yesterday.",
+        "q:“(...) Anyway, as long as I’m alive, I will remain for a lifetime / simply because I was born (...)<br>〈Dacryscope Lab〉 (2025)”",
+        "For those who have become completely transparent — both in the physical and existential sense — seeing the world from a first-person perspective is almost impossible. Rui likens the state of those who have grown transparent even to themselves to depersonalization.<sup>*</sup> This condition resembles the distance between the camera and the person standing behind it. One of the conventions in camera-based media is that the person behind the camera never appears within the frame — (a rule that can only be crossed through other devices, such as mirrors, windows, puddles, or another’s eyes). The person behind the camera serves as a third term that connects the camera (the first term) and the subject/object/world (the second). Yet, the nature of this connection slightly diverges from what we typically understand as mediation.",
+        "When we use the term mediate, it primarily signifies connecting extremes through a medium. For example, the eye mediates between the world and ourselves (our perception), positioned structurally as [world–eye–person] — physically, existentially, and functionally — between us and the world. In the case of camera-based media, if we continue to think of the camera as a substitute for the eye, the structure of mediation becomes [world–camera–person behind the camera]. Yet in practice, mediation in camera-based media does not follow this schema. It is not the camera, but the person behind the camera who truly mediates. Standing in a peculiar position, both present and absent, the person behind the camera coordinates and mediates the relationship between the camera and the world from outside of both. They intervene in the relationship without being directly involved — a solitude outside the world and the camera. I would like to call this outside space “beyond the selfie.” It seems natural that a narrator, belonging to neither side, stands at the threshold of depersonalization. Now, the person behind the camera becomes something akin to a virtual camera within a 3D engine. Roaming  freely through space, influencing the environment, yet belonging to no one, seen by no one.",
+        "〈Dacryscope Lab〉 is precisely an attempt to render the eye of the person behind the camera, standing beyond the selfie, as close as possible to a human eye. This work quantifies blinks, styes, and eyebrow and cheek movements, and calculates the field of vision, tracing a path opposite to conventional camera development. How can reality be captured without distortion or obstruction? To obtain a clearer, purer, and more transparent image, the virtual camera floats above a hygienic 3D grid — a starting point designed to eliminate all bacteria. People often assume that the camera is an externalized extension of our eyes, but in fact, the camera has never sought to be an eye. The human eye is blocked in many ways: squinting in bright light, floaters, illusions, dust and hair, tears, eye mucus, foreign matter, microbes, and events under the lens or eyelids. Considering moisture settled on a lens, slight scratches, or dust, one might find some common ground between camera and eye. Yet the 3D environments the artist primarily uses are perfectly sterilized. The camera freely navigates spaces the human eye cannot reach, moving toward the promise of a crystal-clear image. To fulfill this promise, the camera sheds even its own shell, becoming a virtual camera within the 3D engine — in other words, POV. Now, only now, does the camera has become akin to a human. It roams freely through space, influences its environment, yet belongs to no one, is held by no hand, and is seen by no eye.",
+        "This reverse movement continues in other works. Between the camera that sheds its shell to become transparent and our eyes that remain opaque and resistant, an artist places  〈Hall〉(2025). Whether it seeks to bridge or to break the link between image and matter, the work resists the pursuit of clarity and sanitized precision, deliberately clothing itself in a shell. 〈Crystal Retina〉 (2025) series results from virtual eyes—Yes. eyes and cameras  are interchangeable here—rising into the physical world, taking on matter, and settling into reality. In a corner of the exhibition, 〈Limbus〉(2025) rests within a dark wooden frame that recalls a coffin, a body of transparent fragments, a dead maternal form. Standing before these pieces that attempt to reproduce imperfection through media striving for crystalline perfection, one is compelled to reflect anew on those that died before birth, or those who live yet hover at the threshold of death.",
+        "So, what is this reversal for? To claim that machines surpass the human? To compare the eye and the camera? emphasizing the camera’s optical superiority? To showcase what the 3D engine can accomplish? or how far the technology has advanced? This  work returns to the problem of mediation from the position of the one standing outside. I shed my skin to become the camera, and I clothe the camera with a skin, giving it eyes—an act of (counter-)mediation. I allow the machines to willingly take my place. Instead, what i gain is’’.",
+        "q:“I remember the first time I saw the gray grid in 3D Blender 2.8. There was the sun, the camera, the object; there was gravity, wind, friction. And everything was fake. For a moment, I truly cheered, because every function felt like a tool to metaphorically render reality. A 3D model is nothing more than a textured shell bent according to coordinates. It has no soul, no brain. No chamber to produce waste, no heart to pump life. It is a deceptive instrument, imitating reality on screen only according to the user’s intention. And precisely because everything is fake, it felt closer to  truth. Objects whose purpose is explained by a single layer of exterior speak more genuinely of the human.”<br>Excerpt from Rui Kim’s artist note (2025)",
+        "Above all, machines maintain coherence between interior and exterior. A camera as a viewpoint can reach inside objects, yet it need not. Interiors may exist to operate the exterior,  in 3D tools, every element is orchestrated to appear real. An artist’s thrill at the grid is neither for paradise nor for mechanical beauty, but for  this world, there is no need to infer the mind of another. Machine’s interior seems complex with wires and components,  should contain nothing without purpose. Human minds, however—those invisible interiors—cannot be fully externalized, regardless of intention, resolve, or will to express. Unlike the body, which seeks to reveal itself, the mind hides, and before this opacity, we are plunged into solitude.",
+        "Yet this solitude is not an extended loneliness. It must be understood as a condition of existence: standing before the mind of another that will never open, one must endure it.  Looking back on the given environment, for most people,  solitude is a hurdle to overcome. In Rui Kim’s work, solitude is not to be conquered.  It is a mode of relating to things, a climate to be humbly accepted when encountering the relations between objects and the world from a third vantage—the thinnest, most delicate perspective. Under this climate, the artist reorganizes the world’s order. And in there,  humans and machines are scarcely distinguishable.︎"
+      ]
+    },
+    "notes": {
+      "ko": [
+        "* 자기가 낯설게 느껴지거나 자기로부터 분리, 소외된 느낌을 경험하는 것으로 자기 자신을 지각하는 데에 이상이 생긴 상태. 김루이 이인증 스크립트 인용."
+      ],
+      "en": [
+        "* A state in which one experiences a sense of estrangement or separation from oneself, causing a disturbance in self-perception. “Quoted from Rui Kim’s depersonalization script”"
+      ]
+    },
+    "sign": {
+      "ko": [],
+      "en": []
+    }
+  },
+  {
+    "id": "review-jsy-2025",
+    "title": {
+      "ko": "「2025년 청년예술지원사업 전문가 리뷰」 김루이 개인전 《Pull the camera back more… Now it's near the retina》 | 정소영",
+      "en": "2025 Young Artist Support Program Expert Review - Rui Kim Solo Exhibition 《Pull the camera back more… Now it's near the retina》 | Jeong Soyoung"
+    },
+    "body": {
+      "ko": [
+        "김루이 작가는 컴퓨터 기반의 3D 공간을 다룬다. 작가가 만들어내는 가상 공간은 기억의 저장고이자 작가가 세상과 소통하기 위해 만들어낸 장소이다. 이 곳을 담아내는 가상의 카메라와 온라인에서 수집한 소리들은 부재하지만 또렷하게 느껴지는 ‘몸’을 환기시킨다. 현실을 닮았지만 결코 현실로 착각할 수 없는 영상 속 풍경들은 오히려 작가의 내밀한 서사를 더욱 선명하게 드러낸다. 분리되어 있을 것만 같은 가상과 실제, 내부와 외부의 세계가 작품 속에서 어긋나며 밀착되는 과정을 따라가다 보면, 관람자는 끊임없이 작가와 본인, 가상과 현실의 안과 밖의 경계를 넘나들게 된다.",
+        "작품 속 등장하는 잉어, 열쇠고리, 반지하 공간은 깜빡이는 시선과 눈물로 추정하게 되는 그래픽 장치들과 함께 움직이고 왜곡된 장면들을 만들어낸다. 재구성된 작가의 기억은 전시장에서 비물질적인 빛의 프로젝션으로 구현된다. 어느 순간, 영상 속 눈의 깜빡임은 관람자가 있는 물리적 공간의 깜빡임으로 겹쳐지는 순간을 만든다. 차갑고 매끄러운 이미지 위에 덧입혀진 의도적인 재질감은 관람자의 시선과 스크린 사이에 볼륨감을 만든다. 작가의 몸, 가상 공간, 빛의 움직임으로 이어지는 경험은 전시장이라는 실제 공간을 일시적으로 살아 움직이는 장소로 확장시킨다.",
+        "컴퓨터 스크린 뒤에 오랜시간을 앉아 작업했을 작가의 집요함과 동시에 처절함이 느껴진다. 김루이 작가에게 컴퓨터 작업은 실존의 차원이다. 특히, 작품 속에 던져지는 단어들은 매우 개인적이다. 기계적 원리를 설명하는 듯한 언어들도 결국 상징적으로 느껴진다. 카메라 뒤에 존재하는 본인의 눈- 이 작업에서는 가상 카메라이지만-, 뒤에는 결국 어머니가 존재한다는 근원에 대한 추적은 표면적 이미지 하부에 많은 층들이 존재하고 있다는 것을 주장한다. 눈, 비행기 창문, 스탠드 조명이 비추는 둥근 빛에서 반복적으로 등장하는 구멍의 이미지는 이러한 다층의 구조를 연결해주는 통로로 등장한다. 구멍의 이미지는 총 네 편의 영상 설치 속에서 각기 다른 모습으로 등장한다. 가로로 길게 난 틈새로, 또는 눈의 깜빡거림에서, 또는 작품을 바라보고 있는 관람객 본인의 눈에서 드러난다. 작고 큰 이 틈 사이로 근경과 원경, 이야기 내부와 외부 구조를 넘나들며, 유동적이고 다층적인 서사를 직조한다. 4편의 영상 설치작업이 깜박이고, 교차되어 상영되는 전시장은 작가가 작품에서 추적하고 있는 자아의 근원- 자궁 속과 같다.",
+        "함께 전시된 일련의 3D 프린트 오브제는 작가가 붙잡고자 하는 가상의 물리적 감각을 조각적으로 제시한다. 이 파편적 형태들은 관람자가 작가의 내면을 드나들 수 있는 일종의 지표로 작용한다. 작은 지도와 같은 조각 작업들은 영상의 구조를 응집하여 시선을 집중시키는 역할을 수행하는 반면, 영상의 빛을 투과시키고 해체시키는 이중적 장치로 존재한다. 이는 작가가 의도하는 가상과 물질의 중첩과 배반의 경험을 보여준다.",
+        "김루이 작가의 작업은 디지털과 물질, 신체와 비물질의 경계가 반복적으로 교차하는 다중적 자아의 경험을 가능케 한다. 이러한 모든 요소들은 관람자가 한 개인의 내면과 매개된 세계를 직접적으로 체험하도록 유도한다."
+      ],
+      "en": [
+        "Rui Kim works with computer-based 3D space. The virtual space she creates is a storehouse of memory and, at the same time, a place she has made in order to communicate with the world. The virtual camera that captures this place, together with the sounds she has collected online, evokes a ‘body’ that is absent yet distinctly felt. The landscapes within the videos resemble reality but can never be mistaken for it, and precisely for that reason they disclose the artist’s innermost narrative all the more sharply. Following the process by which the virtual and the actual, the inner and the outer worlds—which seem as though they must be separate—slip out of alignment and press close together inside the work, the viewer continually crosses the boundaries between the artist and herself, between the inside and the outside of the virtual and the real.",
+        "The carp, the keyring, and the semi-basement room that appear in the works move together with graphic devices one takes to be a blinking gaze and tears, producing distorted scenes. The artist’s reconstructed memory is realized in the exhibition space as an immaterial projection of light. At a certain moment, the blinking of the eye inside the video comes to overlap with the flickering of the physical space in which the viewer stands. The deliberate texture laid over the cold, smooth image creates a sense of volume between the viewer’s gaze and the screen. The experience that runs from the artist’s body, through virtual space, to the movement of light expands the actual space of the exhibition hall into a place that is temporarily alive and in motion.",
+        "One feels the tenacity, and at the same time the desperation, of an artist who must have sat working for long hours behind a computer screen. For Rui Kim, working on the computer is a dimension of existence. The words thrown into the works, in particular, are deeply personal. Even language that appears to explain mechanical principles ends up feeling symbolic. Her own eye exists behind the camera—here a virtual camera—and behind that eye, in the end, is the mother; this tracing of an origin asserts that many layers exist beneath the surface of the image. The image of the hole, which appears repeatedly in the eye, the airplane window, and the round light cast by a desk lamp, emerges as the passage that connects this multilayered structure. The image of the hole appears in a different form in each of the four video installations. It is disclosed through a long horizontal crevice, or in the blinking of an eye, or in the eye of the viewer who is looking at the work. Passing back and forth through these gaps, small and large—between near view and far view, between the interior of the story and its outer structure—it weaves a fluid, multilayered narrative. The exhibition hall, where the four video installations flicker and are screened in alternation, is like the origin of the self the artist is tracing in her work—like the inside of a womb.",
+        "The series of 3D-printed objects exhibited alongside them presents sculpturally the physical sensation of the virtual that the artist wishes to hold onto. These fragmentary forms act as a kind of index through which the viewer can pass in and out of the artist’s interior. While these sculptural works, like small maps, condense the structure of the videos and concentrate the gaze, they exist at the same time as a double device that transmits the light of the videos and breaks it apart. This shows the experience of superimposition and betrayal between the virtual and the material that the artist intends.",
+        "Rui Kim’s work makes possible the experience of a multiple self, in which the boundaries between the digital and the material, the bodily and the immaterial, repeatedly intersect. All of these elements lead the viewer to experience directly one individual’s interior and the world mediated through it."
+      ]
+    },
+    "notes": {
+      "ko": [],
+      "en": []
+    },
+    "sign": {
+      "ko": [
+        "2025. 6. 13.",
+        "정소영 시각예술가"
+      ],
+      "en": [
+        "June 13, 2025",
+        "Jeong Soyoung, visual artist"
+      ]
+    }
+  },
+  {
+    "id": "foreword-yts-2025",
+    "title": {
+      "ko": "「스크린과 껍질」 김루이 개인전 서문 | 윤태균",
+      "en": "Screen and Shell - Rui Kim Solo Exhibition | Taegyun Yoon"
+    },
+    "body": {
+      "ko": [
+        "영상을 만드는 일은 렌즈(Lens)를 세상에 들이 밀고 마구 휘젓는 일과도 같다. 렌즈를 자신의 눈으로 삼는 영상 제작자는 카메라의 렌즈 혹은 컴퓨터의 비전(vision)을 무기처럼 휘두른다. 그러나 렌즈가 그들의 눈이라면, 렌즈 또한 사람의 안구만큼 연약하기도 하다. 우리는 거울 없이 스스로를 볼 수 없기에 우리의 시야에서는 스스로가 숨겨져 있지만, 항상 자신 또한 타자에게 보여진다는 두려움을 가지고 있다. 우리가 스스로를 볼 수 없는 타자에게 시선을 내려 꽂듯이, 스스로를 볼 수 없는 우리 또한 타자의 시선에 의해 공격당한다. 이처럼 영상을 만드는 이는 자신의 어떤 신체 부위보다 가장 날카로우면서 연약한 신체를 위험한 사물들의 세계로 삽입한다. 따라서 렌즈의 시선은 보는 이의 권력을 실현하는 과정이자 신체의 내부를 침략당할 수 있는 가능성이기도 하다.",
+        "김루이의 화면에서는 위와 같은 모순적 욕망이 직접적 형식으로 나타난다. 보고자 하는 열망은 크지만 사물이 몸을 파고들 것이라는 두려움은 보는 이를 주저케 한다. 스크린은 우리를 세상과 매개함과 동시에 우리를 세상으로부터 보호한다. 우리와 가장 근접한 스크린은 눈의 수정체(lens)이다. 김루이의 영상을 볼 때에 그 다음으로 가까운 스크린은 가상을 매개하는 TV모니터일 것이다. 그러나 김루이가 재현하는 가상과 우리가 위치한 현실을 분리하는 스크린은 TV모니터 한 겹만이 아니다. 김루이는 침입의 두려움에도 불구하고, 계속해서 보기 위해 스크린 내외부에 껍질을 겹겹이 더한다. 예컨대 〈Dacryscope〉(2023)에서 직선적 시야를 방해하는 비행기 기체 벽, 마치 벽처럼 빼곡히 흩날리는 눈이 신체 외부의 껍질이다. 또한 〈Pyknolepsy(seizures)〉(2025)의 눈꺼풀과 〈Hall〉(2024)의 프루키녜 현상, 비문증(飛蚊症), 안내섬광은 신체 내부의 껍질이다.<sup>1</sup> 그리고 〈Dacryscope〉의 화면에 떨어지는 부스러기와 〈Paputa〉(2024)에서 디지털 디스플레이의 평면성을 강조하는 아스키 아트는 TV모니터의 보강된 껍질이다. 더 나아가, 전시장에 여러 겹으로 배치된 화면들은 스스로를 껍질로 만든다. 이렇게 주체가 봄으로써 세계의 사물들에 의해 침략당할 때에, 외부로부터 내부를 보호하는 껍질은 내부가 바깥으로 흘러내리지 않게 해체를 막기도 한다. 분명 껍질-스크린은 세계에 대한 두려움으로 만들어지지만 그 껍질-스크린이 있기 때문에 내부, 즉 주체가 있는 것이다.",
+        "김루이에게 본다는 행위는 세계를 이해하는 과정이다. 그러나 이 이해는 어떤 사물에 대한 고정된 정의가 아니다. 보는 이와 보여지는 이는 서로 끊임없이 관측하며 서로에 관한 완벽한 이해가 아닌 그 과정 자체를 이해하려 노력한다. 사전의 의도와 목적은 일관되지 않고 과정 안에서 새로이 주조된다. 이해가 보기와 동의어라면, 이해 또한 오로지 이성의 영역에 머무르지 않고 감각적 영역에도 포함될 것이다. 그렇기 때문에 김루이는 이해의 도구로서 카메라-렌즈를 자신의 신체로 배양하는 것이다. 제 3의 눈을 사용하여 세상을 이해하기 위해서. 카메라와 컴퓨터는 작가에게 감각의 대리자이지만, 그 또한 신체의 일부로 여겨지기에 화면 내 그 어떤 사물보다 가깝고 친근한 사물이다. 일종의 무성생식으로서, 이 기계-감각기관은 김루이의 시선에 참여한 이들의 신체에 수태된다. 화면의 흔들림은 멀미가 아니다. 작가의 말처럼, “멀미가 아닌 입덧”이다.<sup>2</sup>◼"
+      ],
+      "en": [
+        "Creating video is akin to pushing a lens into the world and stirring it violently. The filmmaker who takes the lens as their own eye wields the camera lens or the computer’s vision as a weapon. But, if the lens is their eye, it is also as vulnerable as a human eyeball. Since we cannot see ourselves without a mirror, our vision hides ourselves, yet we carry a constant fear that we are always visible to others. Just as we direct our gaze at others who cannot see themselves, we are also exposed to the gaze of others who can see us. In this way, the filmmaker inserts the sharpest yet most fragile part of their body into a world of dangerous objects. Consequently, the lens’s gaze is both an exercise of power over what is seen and a potential for the body’s interior to be invaded.",
+        "In Rui Kim’s screen work, such contradictory desires manifest directly in form. The yearning to see is strong, yet the fear that objects might penetrate the body causes hesitation in the viewer. The screen mediates us with the world while simultaneously protecting us from it. The screen closest to us is the lens of the eye. When watching her work, the next closest screen would be the TV monitor mediating the virtual. However, the screen separating the virtual Rui reproduces and the reality we occupy is not limited to a single TV monitor. Despite the fear of intrusion, Rui continuously adds layers of shells both inside and outside the screen. For example, in 〈Dacryscope〉 (2023), the aircraft fuselage obstructing a straight line of sight and the eyes scattered densely like a wall form the external shell of the body. The eyelids in 〈Pyknolepsy (seizures)〉 (2025), Purkinje phenomena in 〈Hall〉 (2024), floaters, and visual flashes form internal shells.<sup>1</sup> Additionally, debris falling on the screen in 〈Dacryscope〉 and the ASCII Art emphasizing the flatness of the digital display in 〈Paputa〉 (2024) serve as reinforced shells for the TV monitor. Beyond that, multiple layers of screens in the exhibition space create shells of their own.",
+        "In this way, when the subject sees and is potentially invaded by the world’s objects, the protective shell prevents the interior from leaking outward. Clearly, the shell-screen is created from fear of the world, yet it is precisely this shell-screen that ensures the presence of the interior, that is, the subject.",
+        "For Rui Kim, the act of seeing is a process of understanding the world. Yet this understanding is not a fixed definition of objects. The observer and the observed continuously monitor each other, striving to comprehend the process itself rather than attaining perfect understanding of one another. Intentions and objectives are not consistent; they are reshaped within the process. If understanding is synonymous with seeing, it resides not only in reason but also within the sensory domain. Therefore, Kim cultivates the camera-lens as an extension of the body, using it as a tool for understanding the world through a third eye. Cameras and computers act as surrogates of the senses for the artist, yet they are considered part of the body, and thus, they are closer and more familiar than any object within the screen. As a kind of asexual reproduction, this machine-sensory organ is “impregnated” into the bodies of those participating in Rui’s gaze. The shaking of the screen is not motion sickness. As the artist puts it, it is “morning sickness, not seasickness.”<sup>2</sup>◼"
+      ]
+    },
+    "notes": {
+      "ko": [
+        "1) 프루키녜 현상은 어두운 곳에서 파란색이나 녹색 계열의 색상이 유독 밝게 인식되는 현상이다. 비문증은 눈앞에 떠다니는 점이나 실 같은 형태가 보이는 증상으로, 주로 유리체 변화에서 비롯된다. 안내섬광은 강한 자극 없이도 눈에 갑작스러운 섬광이 보이는 현상으로, 망막에 물리적 자극이 가해질 때 발생한다.",
+        "2) 작가와의 대화에서 발췌"
+      ],
+      "en": [
+        "1) Purkinje phenomenon is a visual effect in which blue or green tones appear unusually bright under low-light conditions. Floaters are tiny shapes, such as dots or threads, that drift across the visual field, usually resulting from changes in the vitreous body. Phosphenes are sudden flashes of light perceived without strong external stimuli, typically caused by physical stimulation or pressure on the retina.",
+        "2) Excerpted from a conversation with the artist."
+      ]
+    },
+    "sign": {
+      "ko": [],
+      "en": []
+    }
+  },
+  {
+    "id": "review-sjh-2024",
+    "title": {
+      "ko": "2024 NeMAF 비평웹진 「리얼리티의 진솔함에 대하여」 | 성진혁",
+      "en": "2024 NeMAF Critique Webzine 「On the Sincerity of Reality」 | Seong Jinhyuk"
+    },
+    "body": {
+      "ko": [
+        "‘리얼리티’는 얼마나 더 정밀하고 또 진솔해질 수 있는가? 이 질문에서 정밀함이 해상도의 문제라면, 진솔함은 무엇의 문제라고 해야할까? 카메라는 얼마나 더 내밀한 감정에 다가갈 수 있는가? 김루이는 〈다크라이스코프 실험〉을 통해 정동이 구축하거나 왜곡하는 시야와 이를 적용한 카메라 모델을 탐구하고자 한다. 카메라는 정교하고 현실감 있게 대상을 바라보고 다뤄왔지만, 그것은 눈 깜빡임, 눈물과 이물질, 시력 저하와 향상, 감정 상태 등이 반영되지 않은 채 작동되었다. 김루이가 제시한 모델 ‘다크라이스코프’는 이러한 ‘시각적 비체’를 고려한 새로운 보기의 방식으로서 제시되었다. 이 카메라는 감정과 눈의 상태를 수치화해 그에 따른 시야를 파악, 설정하며 그에 따라 화면은 일렁이거나 흐려지며, 때때로는 대상이 식별 불가능해지기도 한다. 이는 대상을 보다 선명하게 바라보기 위함이 아닌 오히려 흐릿한 상태를 만들기 위한 시도이다. ‘비체(abject)’라는 용어에서 알 수 있듯이 〈다크라이스코프 실험〉이 담지하고자 하는 것은 매끄러움이 아닌 지저분함이며, 리얼리티의 정밀함이 아닌 진솔함이다.",
+        "따라서 다크라이스코프가 보여주는 새로운 리얼리티는 보다 더 선명해지고자 하는 가상 현실의 그것에 반하는 것이기도 하다. 개인의 시선에 의해 포착된 것이 반드시 뚜렷한 형태로 붙잡힐 것이라는 믿음은 이미 오래전에 깨졌음에도 가상 현실은 그 욕망을 발현시키기라도 하듯 보다 정교한 화면을 만들어 왔고 여전히 그러고 있다. 그 과정에서 신체는 어딘가로 날아가버리며 밝은 화면만이 허공에 떠있게 된다. 〈다크라이스코프 실험〉은 여기에 신체의 문제를 덧댄다. 감정의 즉발과 이에 대한 반응으로서의 신체, 혹은 그로 인해 나타나는 현상을 기입해 보다 진솔한 시야를 구성하게끔 하는 것이다. 눈물, 눈꺼풀, 눈곱, 다래끼와 같은 것들은 그것의 구성물이자 결과물이 된다.",
+        "한편으로 〈다크라이스코프 실험〉은 다크라이스코프를 이용한 ‘쓰기’의 실험이기도 하다. 이 작품을 일종의 에세이 쓰기로 받아들인다면, 다크라이스코프는 새로운 종류의 눈인 동시에 펜으로도 생각할 수도 있을 것이다. 보는 이는 다크라이스코프의 시야를 공유함과 동시에 그것이 담보하고 있는 신체의 감정과 기억을 일정 부분 공유하게 된다. 이는 곧 이미지와 이미지(텍스트)의 몽타주가 아닌 시점과 이미지(텍스트)의 몽타주에 대한 실험이기도 하다. 작품의 후반부는 실험에 대한 검증인 한편 또다른 실험이기도 하며, 이 지점이 〈다크라이스코프 실험〉으로 하여금 실험자와 피험자라는 이중의 상태에 놓이게 한다."
+      ],
+      "en": [
+        "How much more precise, and how much more sincere, can ‘reality’ become? If precision, in this question, is a matter of resolution, then what is sincerity a matter of? How much closer can a camera come to an intimate emotion? Through 〈Dacryscope Lab〉, Rui Kim sets out to explore the field of vision that affect constructs or distorts, and a camera model that applies it. The camera has looked at and handled its objects with precision and a sense of reality, but it has operated without reflecting the blinking of an eye, tears and foreign matter, the decline and improvement of eyesight, or emotional states. The model Rui Kim proposes, the ‘dacryscope,’ is put forward as a new way of seeing that takes such ‘visual abjects’ into account. This camera quantifies emotion and the condition of the eye, grasping and setting the field of vision accordingly; the screen ripples or blurs, and at times the object becomes impossible to identify. This is not an attempt to see the object more clearly but, on the contrary, an attempt to produce a state of blurring. As the term ‘abject’ suggests, what 〈Dacryscope Lab〉 seeks to hold is not smoothness but filth, not the precision of reality but its sincerity.",
+        "The new reality the dacryscope reveals therefore runs counter to that of a virtual reality striving to become ever clearer. Although the belief that whatever is caught by an individual’s gaze must be grasped in a distinct form was broken long ago, virtual reality has gone on producing ever more refined images, as if to give that desire full expression, and it continues to do so. In that process the body flies off somewhere, and only the bright screen remains suspended in the air. 〈Dacryscope Lab〉 grafts the problem of the body onto this. It inscribes the sudden onset of emotion and the body as its response, or the phenomena that arise from it, so that a more sincere field of vision may be composed. Tears, eyelids, eye mucus, and styes become both its components and its results.",
+        "〈Dacryscope Lab〉 is, on the other hand, also an experiment in ‘writing’ by means of the dacryscope. If we take this work as a kind of essay-writing, the dacryscope may be thought of as a pen as much as a new kind of eye. The viewer shares the dacryscope’s field of vision and, at the same time, shares to some degree the emotions and memories of the body it holds in trust. This amounts to an experiment not in the montage of image and image (text) but in the montage of viewpoint and image (text). The latter half of the work is a verification of the experiment and, at once, another experiment; it is at this point that 〈Dacryscope Lab〉 is placed in the double condition of experimenter and test subject."
+      ]
+    },
+    "notes": {
+      "ko": [],
+      "en": []
+    },
+    "sign": {
+      "ko": [
+        "글. 성진혁. 네마프2024 비평웹진 에디터."
+      ],
+      "en": [
+        "Text. Seong Jinhyuk. Editor, NeMAF 2024 Critique Webzine."
+      ]
+    },
+    "link": {
+      "url": "https://www.nemaf.net/bbs/review/315561",
+      "label": {
+        "ko": "원문 보기 — nemaf.net",
+        "en": "Read the original — nemaf.net"
+      }
+    }
+  },
+  {
+    "id": "review-hsh-loose",
+    "title": {
+      "ko": "《Loose me Tight》 리뷰 | 하상현",
+      "en": "《Loose me Tight》 Review | Ha Sanghyun"
+    },
+    "body": {
+      "ko": [
+        "h:1. 방",
+        "《Loose me Tight》는 방에 관한 전시다. 작가들은 사적인 내면이 드러나는 공간으로서 ‘개인의 방’을 10평 남짓한 전시장 공간에 겹쳐 둔다. 그리고 그곳에 관객을 초대한다. 세상에는 여러 종류의 방이 있다. 어떤 방은 호텔처럼 먼지 한 톨 없이 깔끔하고, 어떤 방은 물건과 쓰레기가 산더미처럼 쌓여 있다. 왜 어린 아이들은 어지르고, 어른들은 치울까? 왜 아픈 사람은 방을 돌보지 못할까?",
+        "방은 광장과 거리, 그리고 일터와 같은 공적 장소와 대비된다. 방은 홀로 있을 수 있지만, 공적 장소는 개인이 소유하지 않으며 다수의 타인과 만나는 장소다. 《Loose me Tight》는 무언가를 보여주는 ‘전시’라는 공적인 행위와 방에 타인을 들이는 사적인 ‘초대’의 경계에서 이뤄진다. 공적인 것과 사적인 것, 공유와 소유, 외면과 내면, 드러남과 드러나지 않음. “나를 단단히, 풀어줘(Loose me Tight)”라는 이중적인 요청은, 외부로부터 떨어져 있는 공간인 방 안에서도 피부가 맞닿는 어떠한 ‘조임’이 작용할 수 있다는 사실을 상기시킨다.",
+        "어떤 방은 사람들에게 초대되도록 준비되어 있고, 어떤 방은 그렇지 않다. 어떤 이는 집을 소유한다. 그곳은 집의 주인이 오랜 시간 머물 수 있고, 그의 삶의 방식이 차곡차곡 쌓여 있을 가능성이 높다. 어떤 이는 계약 만료로 2년마다 이사를 해야 하며, 방은 잠시 머무르는 임시적인 공간으로 여겨진다. 어떤 방은 타인에게 드러내기 위해 존재한다. ‘오늘의 집’에 나오는 가구로 잘 꾸며진, 혹은 ‘이상적’이라고 불릴 수 있는 방들. 방의 내부는 SNS를 통해 이미지로 재현되고, 방의 소유자 내면에 ‘자신만의 방’의 표상을 만든다. 이는 종종 사회가 상정하는 ‘정상적이고 건강한, 부유한’ 방의 이미지와 가깝다. 어떤 방은 효율적인 최소한의 생존을 위한 방식으로 배열된다. 이 또한 집주인을 어떤 방식으로든 드러낸다고 볼 수 있다. 반영의 차원이 그 외관이 아닌, ‘개성을 표현하지 않음’에 있다는 점에서 차이가 있지만 말이다.",
+        "이처럼 방과 방에 머무는 사람의 내면의 연관 관계는 다양한 사회적 조건에 따라 굴절된다. 특히 누군가를 초대하기 위해 방 자체를 재구성한 경우, 방의 내면성이 어떤 굴절을 통해 타인들에게 노출되는지가 중요하다. 이는 뒤집어진 방식의 공적 상황이다. 전시에 참여한 세 작가는 방 속 내밀한 신체의 촉각성을 그 자체로 제시하기보단, 무언가가 지나고 난 다음에 남은 흔적을 바라보는 감각으로 제시한다. 작가들은 액체가 흐르고 난 후 남은 자국, 혹은 습윤한 것이 굳어서 화석화된 물성 같은 것을 제시한다. 우리는 타인의 흔적을, 때론 비천하고, 찬란한 그것을 어떻게 마주할 수 있을까? 타인의 방에는 내가 이해할 수 없는 삶의 양식과 고통, 아름다움이 묻어 있다.",
+        "임도연은 〈캐리어즈 시리즈〉에서 수분을 머금은 흙에서만 가능한 형태들. 즉, 꼬임이나 찢어짐, 얇은 두께와 같은 것들을 수분을 모두 건조하고 이후 굳어져 깨질 것 같은 물성으로 보여 준다. 제작된 사물을 운반하기 위해선 쉽게 다칠 수 있는 아이를 안는 것처럼 옮겨야 한다. 작가의 얇게 굳은 사물은, 그것을 보기 위해 카펫 위를 밟는 관람자의 발을 의식하게 만든다. 김루이의 〈새는 집〉은 누군가의 방을 물이 떨어졌던 배수구의 아래에 존재들이 머무는 공간으로 제시한다. 늘어난 임부복을 비어진 공간으로 제시한 〈엄마 동굴〉은 타자인 아기를 품으며, 늘어나 줄어들지 않은 몸, 보이지 않지만 속으로 존재하는 공간을 마주하게 한다. 원정인의 〈(in)secure.1〉에서 펜스는, 외부인을 쫓아내는 기능을 엄밀하게 수행하지 않는다. 이 사물은 상대를 찌를 거라는 의지를 가지다가도, 이를 우아하게 비틀어 내며, 돌연 하트 모양으로 자신을 아름답게 제시한다. 때때로 펜스는 그 자체로 보일 대상이 되고, 찌를 의지를 상실한 생물체와 같은 구불구불한 무엇이 되기도 한다. 작가들의 방과 그곳에서의 사물은 초대와 적대를 이중으로 구사하거나, 침윤 이후의 결과를 보여 준다. 작업들은 어딘가 존재했던 지나간 체액적 시간을 담고 있다.",
+        "h:2. 요하나 헤드바, 「아픈 여자 이론」<sup>1</sup>",
+        "q:“창문 너머 행진 소리가 들린다. 침대에 틀어박힌 나는 연대의 의미로 이 아픈 여자의 주먹을 치켜들었다. … 나는 시선 밖으로 처박혀 있으면서도 주먹을 쳐든 모든 비가시적 몸들에 관해 생각했다. … 정치성을 공공장소에서 행해지는 어떤 행동이라 정의한다면, 우리는 한편으로 그것이 함축하는 배제와 다퉈야만 한다. 정치적이기 위해서 공공장소에 현존하는 것이 필수적이라면, 단지 몸을 거리로 옮기는 것이 물리적으로 불가능하다는 이유로 특정 인구 집단은 비/반-정치적인 것(a-political)으로 간주될 수 있다.”<sup>2</sup>",
+        "요하나 헤드바에겐 만성적 질환 때문에 방과 침대에 벗어나지 못했던 시기가 있었다. 그때 방에서 나갈 수 없는 존재들의 정치성을 생각했다. 한나 아렌트의 ‘광장’은 정치성이 가능한 최소 조건을 ‘외부의 참여하는 열린 공간’으로 정의하는 개념이다. 이는 정치적 공간과 비정치적 공간을 나눈다. 헤드바는 아렌트가 제시하는 “공공영역”을 재고하며, 누가 공적 영역에 보일 수 있도록 허락되는지 되물었다. 또 그곳에서 배제되는 몸을 상상했다.",
+        "공공장소에 나올 수 있는 몸들이 있다. 질병이나 장애를 가진 사람, 또 그러한 사람을 돌봐야 하는 또 다른 사람들, 자신을 가눌 수 없는 아이를 보살펴야 하는 사람들, 또는 의지와 자아가 꺾이고 축소되어 어떤 행위도 할 수 없어진 몸들. 자신이 무엇을 원하는지 무엇이 의미가 있는지 확신하지 못하는 떨리는 존재들.",
+        "광장에 나올 수 있는 몸은 그 자체로 공동에 통용될 수 있는 ‘언어화’가 가능한 목적과 의지를 갖추고 있다는 것을 의미한다. 광장은 하나의 언어에 대항하는 또 다른 언어를 말하는 장소다. 두 발로 서서 앞을 향해 걷는다. 때로는 경찰과 같은 공권력에 저항하며 그 과정에서 물리적인 힘이 동반되기도 한다. 반면 광장의 외곽에는 언어를 가질 수 없는, 말을 할 수 없을 정도로 조각나고, 탈진한 몸이 있다. 현 상황에 허락되는 위계 안에서 목소리를 낼 수 없는, 도망칠 수밖에 없는 몸. 이들은 구호를 외치기보단 숨고, 서기보단 누워 있고, 앞을 향하기보단 하염없이 천장을 바라본다. 아픈 몸 내부의 공간을 향해 공회전한다. 이 몸은 사회가 요구하는 ‘생산’을 할 수 없어진 몸이다. 요하나 헤드바는 이런 아픈 몸들이 모여들 수 있는 가능성과 그것이 발생시킬 정치성을 상상하고자 한다. 그가 스스로에게 묻듯 ‘아픈 사람들에게 가능한 시위 방식’은 무엇일까? ‘침대에서 나오지 못한다면 어떻게 은행 창문에 벽돌을 던질까?’",
+        "q:“가장 반자본주의적인 저항은 다른 이를 보살피고 스스로를 보살피는 일이다. 그동안 역사적으로 여성화되고 그에 따라 비가시화되었던 역할인 간호, 양육, 보살핌을 자신의 일로서 맡는 것이다. 서로의 취약성과 섬세함, 불안정성을 진지하게 받아들임으로써, 지지하고 존중하고 힘을 싣는 일이다… 왜냐하면, 만약 우리가 모두 아프게 되고, 그래서 침대에만 갇혀있게 되어서, 서로 위안을 나누고 치료 경험을 나누며, 지지그룹을 형성하고, 서로의 트라우마적 경험에 대해 증인이 되며, 우리의 아프고, 고통에 차 있으며, 비싸고, 민감하고, 환상적인 신체들에 대한 사랑과 보살핌을 가장 우선으로 여기게 된다면, 일하러 갈 사람은 아무도 남지 않게 될 것이므로, 아마도 그때가 되면, 그제서야, 자본주의는 그토록 필요했고, 오래 지체되었으며, 존나게 영광스러운 정지로 인해 단말마를 지를 것이기 때문이다.”<sup>3</sup>",
+        "각자의 방을 중첩시키는 《Loose me Tight》의 기획 방향을 듣고, 각각의 방들이 서로 충돌하는 경합의 모델을 상상했다. 이는 중첩을 서로 다른 범주의 충돌로 바라보며, 어떻게 각자의 독특성이 한 공간에서 불화를 만들어 내는지, 또 그 과정에서 어떤 기이한 협상을 해내는지를 주목한다. 방의 모습은 예상을 빗나갔다. 이들의 작업은 충돌하기보단, 분리할 수 없이 기대어 있었다. 어쩌면 방의 중첩을 경합의 방식으로 상상한 것은 다분히 남성적인 관점일지도 모른다. 이는 방의 주인을 타인에게 의존하지 않을 수 있는 독특한 신자유주의적 개인으로 전제한다. 본 전시는 이에 가볍게 미소를 지으며, 서로에게 의존하는 방식으로 중첩된 방의 모습을 보여 준다. 관람자를 초대하고, 신발을 벗게 하고, 부드러운 카펫을 밟게 한다. 방 안에는 뾰족한 창살과 밟으면 깨질 것 같은 오브제들, 공허하게 비어있는 요람이 있다. 이는 작가들이 서로에게 그렇게 했듯, 관객이 조심스럽지만, 단단하게 사물과 공간, 그리고 그곳에 없지만 빈 방식으로 존재하는 ‘몸’을 껴안도록 만든다.",
+        "요하나 헤드바가 말하듯, 어쩌면 가장 반자본주의적인 행위는 서로를 돌보는 행위일 것이다. 이는 광장에 환한 빛에서 드러나지 않고, 어두운, 아픈 자의 방 안에서 행해진다. 서로를 돌보는 일은 때론 말이 아닌 방식으로 곁을 내어주는 일이다. 이는 차이를 무마하는 안일한 화합이라기보단, 치열하게 각자의 취약성을 공유하는 행위다. 자본주의의 속도는 이러한 잉여적이고, 비생산적인 시간을 허락하지 않을 것이다. 하지만 여전히 누군가는 치밀하게 서로의 몸을 기댄다. 껴안는 상상을 한다."
+      ],
+      "en": [
+        "h:1. The Room",
+        "《Loose me Tight》 is an exhibition about the room. The artists lay ‘the private room,’ as a space in which one’s inner life is exposed, over an exhibition space of some thirty square meters. And there they invite the viewer. There are many kinds of rooms in the world. Some are as spotless as a hotel; in others, objects and refuse are piled into mountains. Why do young children make a mess, and adults clean it up? Why can a sick person not tend to their room?",
+        "The room stands in contrast to public places such as the square, the street, and the workplace. In a room one can be alone, whereas a public place is owned by no individual and is where one meets many others. 《Loose me Tight》 takes place on the border between the public act of ‘exhibiting’ something and the private act of ‘inviting’ another into one’s room. The public and the private, sharing and owning, the outer and the inner, the disclosed and the undisclosed. The double request “Loose me Tight” reminds us that even inside the room, a space set apart from the outside, a certain ‘tightening’ of skin against skin can be at work.",
+        "Some rooms are prepared to have people invited into them, and some are not. Some own a house. There the owner can stay for a long time, and their way of life is likely to have accumulated layer upon layer. Others must move every two years as a lease expires, and the room is regarded as a temporary space for a brief stay. Some rooms exist in order to be shown to others: rooms furnished with pieces out of an interior-design app, rooms that might be called ‘ideal.’ The interior of the room is reproduced as an image through social media and builds, inside its owner, a representation of ‘a room of one’s own.’ This is often close to the image of the ‘normal, healthy, affluent’ room that society posits. Some rooms are arranged for an efficient, minimal survival. This too may be said to disclose the occupant in some way — though the difference is that what is reflected lies not in appearance but in the ‘non-expression of individuality.’",
+        "The relation between a room and the inner life of the person who stays in it is thus refracted according to various social conditions. Especially when the room itself has been reconstructed in order to invite someone, what matters is through what refraction the room’s interiority is exposed to others. This is a public situation in inverted form. The three artists in the exhibition present the tactility of the intimate body within the room not as such, but through the sense of looking at the traces left after something has passed. They present the mark left after a liquid has run, or a materiality in which something moist has hardened and fossilized. How can we face the traces of another — at times abject, at times radiant? In another’s room there cling forms of life, pain, and beauty that I cannot understand.",
+        "In 〈Carriers Series〉, Im Doyeon shows forms possible only in clay that holds water — twists, tears, thinness — as a materiality that, once all the moisture has dried and it has hardened, seems about to break. To carry the finished objects one must move them as one would hold a child easily hurt. The artist’s thinly hardened objects make the viewer conscious of their own feet stepping on the carpet in order to see them. Rui Kim’s 〈Leaking House〉 presents someone’s room as a space where beings dwell beneath the drain from which water once fell. 〈Mother Cave〉, which presents a stretched maternity dress as an emptied space, holds the infant as other and brings one face to face with a body stretched and never returned to its size, a space that is invisible yet exists within. In Won Jeongin’s 〈(in)secure.1〉, the fence does not strictly perform the function of driving out the intruder. This object holds the will to pierce, then twists it elegantly and abruptly presents itself, beautiful, in the shape of a heart. At times the fence becomes an object to be looked at in itself, becomes some winding creature that has lost the will to pierce. The artists’ rooms and the objects within them deploy invitation and hostility doubly, or show the result after seepage. The works hold a bygone, humoral time that once existed somewhere.",
+        "h:2. Johanna Hedva, 「Sick Woman Theory」<sup>1</sup>",
+        "q:Hedva describes hearing a protest march outside their window and, confined to bed, raising their fist in solidarity — thinking of all the invisible bodies raising their fists while lodged out of sight. If being political requires presence in public space, they argue, then a whole population can be counted as “a-political” simply because moving a body into the street is physically impossible for them.<sup>2</sup>",
+        "There was a period in which Johanna Hedva could not leave their room and their bed because of chronic illness. It was then that they thought about the political existence of those who cannot leave the room. Hannah Arendt’s ‘square’ is a concept that defines the minimal condition for political existence as ‘an open space of outward participation.’ It divides political space from non-political space. Reconsidering the “public realm” Arendt proposes, Hedva asked back: who is permitted to be seen in the public realm? And they imagined the bodies excluded from it.",
+        "There are bodies that can come out into public space. People with illness or disability, and the others who must care for them; those who must look after a child unable to hold itself up; or bodies whose will and self have been broken and shrunk until no act is possible. Trembling beings uncertain of what they want, or of what has meaning.",
+        "That a body can come out into the square means that it possesses a purpose and a will capable of ‘being put into language’ held in common. The square is a place where one language speaks against another. One stands on two feet and walks forward. At times one resists state power such as the police, and physical force accompanies the process. At the edge of the square, by contrast, are bodies that cannot have language, broken and exhausted to the point of being unable to speak. Bodies that cannot raise a voice within the hierarchy the present situation permits, that can only flee. They hide rather than shout slogans, lie down rather than stand, and stare endlessly at the ceiling rather than face forward. They idle toward the space inside the sick body. This is a body that has become unable to perform the ‘production’ society demands. Johanna Hedva seeks to imagine the possibility that such sick bodies might gather, and the political existence that would arise from it. As they ask themselves: what is a ‘mode of protest available to sick people’? ‘If you can’t get out of bed, how do you throw a brick through a bank window?’",
+        "q:Hedva’s answer: the most anti-capitalist protest is to care for another and for oneself — to take on as one’s own work the nursing, the raising, the caring that has historically been feminized and thereby made invisible; to support, respect, and empower one another by taking each other’s vulnerability, delicacy, and precarity seriously. For if everyone fell sick and were confined to bed, sharing comfort and treatment, forming support groups, bearing witness to one another’s trauma, putting love and care for our sick, pained, expensive, sensitive, fantastic bodies first, no one would be left to go to work — and only then, perhaps, would capitalism cry out at the long-overdue and glorious halt.<sup>3</sup>",
+        "On hearing the curatorial direction of 《Loose me Tight》, which superimposes each person’s room, I imagined a model of contest in which the rooms collide with one another. This regards superimposition as a collision of different categories, attending to how each singularity produces discord within one space, and what strange negotiation it works out in the process. The rooms turned out otherwise than expected. These works did not collide; they leaned on one another inseparably. Perhaps to imagine the superimposition of rooms as a mode of contest is a decidedly masculine viewpoint. It presupposes the room’s occupant as a singular neoliberal individual capable of not depending on others. This exhibition smiles lightly at that and shows rooms superimposed in a manner of depending on one another. It invites the viewer, has them take off their shoes, has them step on a soft carpet. In the room are sharp bars, objects that seem about to break underfoot, and a cradle hollowly empty. As the artists did for one another, this makes the viewer embrace — carefully but firmly — the objects, the space, and the ‘body’ that is not there yet exists in the manner of a void.",
+        "As Johanna Hedva says, perhaps the most anti-capitalist act is the act of caring for one another. It is not disclosed in the bright light of the square but performed in the dark room of the sick. To care for one another is at times to offer one’s presence in a way that is not speech. It is less a facile harmony that smooths over difference than a fierce sharing of each other’s vulnerability. The speed of capitalism will not permit such surplus, unproductive time. And yet someone still leans their body meticulously against another’s. Imagines an embrace."
+      ]
+    },
+    "notes": {
+      "ko": [
+        "1. 요하나 헤드바(Johanna Hedva), 「아픈 여자 이론(Sick Woman Theory)」 한국어 번역본, 허지우 번역.",
+        "2. 같은 글, 아그라파 소사이어티 부분 발췌 및 수정본.",
+        "3. 같은 글."
+      ],
+      "en": [
+        "1. Johanna Hedva, 「Sick Woman Theory」, Korean translation by Heo Jiwoo.",
+        "2. Ibid., partial excerpt and revised version, Agrafa Society.",
+        "3. Ibid."
+      ]
+    },
+    "sign": {
+      "ko": [
+        "글: 하상현"
+      ],
+      "en": [
+        "Text: Ha Sanghyun"
+      ]
+    }
+  },
+  {
+    "id": "foreword-loose-me-tight",
+    "title": {
+      "ko": "「Loose me, tight」 3인전 《Loose me tight》 서문 | 김루이",
+      "en": "「Loose me, tight」 Foreword to the three-person exhibition 《Loose me tight》 | Rui Kim"
+    },
+    "body": {
+      "ko": [
+        "Loose me, tight. ‘나를 단단히, 풀어줘’라는 다소 난해한 요청은 친밀함과 거리 두기라는 관계 맺기의 양가성을 염두에 둔 문장이다. 전시에 참여한 세 명은 사적인 내면이 드러나는 공간으로서 개인의 방에 대해 이야기한다. 방이라는 일상적 공간엔 초라할 정도의 사사로운 성질이 있다. 때문에 방문 너머에 대한 이야기는 때때로 수치를 드러내는 자조이며 내밀한 욕망을 밝히는 고백이 된다. 이들은 사사로운 이야기를 공적 공간에 노출하며 발생할 수 있는 오해와 야기되는 불안을 염려한다. 하지만 그럼에도 경험, 정서, 욕망이라는 사적 이야기가 반영된 오브제들을 내어놓는다. 또한 역으로 타인이 내면을 드러낼 때 취할 수 있는 인정의 범위와 환대의 제스처에 대해서도 고민했다. 사적이고 공적인 공간은 문 하나로 구획을 나눠 짐짓 분명해 보이지만, 감추어 보호하고 싶은 내면과 노출하여 표현하고 싶은 마음의 경계는 누구에게나 모호하기에. 이들은 그러한 감정의 양면을 인정하고 선언하듯 각자 다르게 해석한 방의 이미지를 한 곳에 뒤섞는다.",
+        "김루이는 입체와 영상 작업을 하며 사물을 사용함으로써 되려 신체가 구속되고 인간의 취약한 본성이 드러나는 상황을 주시한다. 그는 방이란 무언가를 품기 위해 항상 결핍된 내부 공간을 갖고 있음을 생각한다. 그리고 자신의 경험에 비추어, 방과 주인의 관계가 역전된 은둔형 외톨이나 하우스 호더의 방을 떠올린다. 방 안에 고립된 채 감당할 수 없는 사물을 쌓아가는 것은 텅 빈 주체인 방의 허기이자, 그 방에 비추어 드러나는 주인의 결핍이다. 석고 오브제들은 그러한 방과 연장된 신체로서 텅 빈 내부를 노출한다. 한편 텅 빈 속이 나타내는 허기는 김루이에게 영상이 끊임없이 프레임 안쪽으로의 관심을 갈구하는 발광체임을 인지하는 것으로 연결된다.",
+        "원정인은 일상 속 조용히 자리하고 있는 사건의 잔상과 정서를 포착하여 풍경과 동떨어진 객체로 만든다. 흙을 비롯한 다른 물질이 특정한 기억을 품고 몸을 갖게 하는 그의 작업은 자신과 사건의 거리를 떨어뜨림으로써 오히려 명확히 마주할 수 있도록 돕는 과정이다. 때문에 원정인에게 분리와 차단이란 서로를 보다 잘 이해해 보기 위한 방법이다. 그는 혼자만의 방에서 맞는 새벽과 어스름한 푸른빛을 떠올린다. 그리고 모든 것이 멈춘 듯한 시간대의 안정감과 불안감을 흙에 투사하여 실제 있을 법한, 그러나 조금씩 왜곡된 사물로 만들고자 했다. 곳곳에 설치된 창살과 가시는 방의 외부와 내부를 단절하면서도 곧 깨어질 듯한 안락함을 상상하게 한다.",
+        "임도연은 소성되며 형태가 변하는 흙의 성질을 바탕으로 균열의 긴장을 드러낸다. 임도연에게 있어 방 안의 내밀함은 의도에 따라 꺼내어 노출하거나 미처 감추지 못할 때 드러나는 개인의 모습과 연결된다. 꼬여있고, 튀어나오며, 가려지고, 다시 보이는 형태는 경계를 모호하게 하면서도 내부에서 드러난 장기처럼 보여진다. 그는 이것의 내부와 외부가 깨어지지 않도록 만지고 문지른다. 그리고 이러한 돌봄의 방식은 눈높이보다 한참 낮은 곳에 놓여져, 기저에 깔린 돌봄의 상태를 은유한다.",
+        "이들의 오브제는 딱딱하지만 여전히 충격에 약하다는 공통된 특성이 있다. 때문에 관람에는 섬세하게 다가가거나 멀찍이 떨어지는 이중의 감각이 요구된다. 이는 부드러운 카펫을 밟으며 놓여진 오브제들을 피해가는 맨 발의 촉감으로 이어질 것이다. 작품들은 그렇게 관객의 동선과 시야를 정중하고 편안하게 안내하기 보다는 어떤 불온함을 말하기 위한 장치로 작동한다. 또한 다른 작품에 올라서거나 기대어 있는 방식의 배치는 관객에게 너그러움을 요구하기에 앞서 서로에게 허용한 무례함이기도 하다. 이는 자신만의 방 안에서 석화되지 않기 위한 움직임이며, 서로에게 기꺼이 물들겠다는 각오이다. 그리고 마지막으로 관객에게 방의 열쇠를 내어주듯 초대한다. 느슨한 거리를 두고, 그러나 꽉 조이듯 다가와 달라는 까다로운 요구와 함께."
+      ],
+      "en": [
+        "Loose me, tight. This somewhat difficult request keeps in view the ambivalence of relating to another: intimacy and the keeping of distance. The three participants in this exhibition speak about the private room as a space in which one’s inner life is exposed. The room, that most ordinary space, holds a private quality bordering on the shabby. For this reason, an account of what lies beyond the door becomes at times a self-mockery that exposes shame, at times a confession that discloses an intimate desire. They are wary of the misunderstanding that may arise, and the anxiety it brings, when private matters are exposed in a public space. Even so, they set out objects that carry private stories of experience, emotion, and desire. Conversely, they also considered the range of acknowledgment and the gesture of hospitality one might extend when another person reveals their interior. Private and public space appear to be plainly divided by a single door, yet the boundary between the interior one wishes to conceal and protect and the mind one wishes to expose and express is vague for anyone. Acknowledging both faces of that feeling, as though declaring it, they mix in one place the images of the room that each has interpreted differently.",
+        "Rui Kim, working in sculpture and video, attends to situations in which the use of objects instead binds the body and lays bare the fragile nature of the human. She considers that a room always holds a deficient interior in order to contain something. And, drawing on her own experience, she recalls the room of a recluse or a house hoarder, where the relation between room and occupant has been reversed. To go on piling up unmanageable objects while isolated inside a room is the hunger of the room as an empty subject, and at once the lack of the occupant, disclosed against that room. The plaster objects expose their empty interiors as bodies extended from such a room. Meanwhile, the hunger that this emptiness indicates leads Rui Kim to recognize that video is a luminous body ceaselessly craving attention toward the inside of the frame.",
+        "Won Jeongin captures the afterimages and emotions of events that lie quietly within daily life, and makes them into objects severed from the landscape. Her work, in which clay and other materials come to hold a particular memory and take on a body, is a process that helps her face an event more clearly by setting distance between herself and it. For Won Jeongin, then, separation and blocking are methods for understanding one another better. She recalls the dawn met alone in a room, and its dim blue light. She sought to project onto clay the stability and the unease of that hour when everything seems to have stopped, making objects that could plausibly exist yet are slightly distorted. The bars and thorns installed here and there sever the outside of the room from its inside, while making one imagine a comfort on the verge of breaking.",
+        "Im Doyeon draws out the tension of the crack, working from the property of clay to change form as it is fired. For Im Doyeon, the intimacy within a room is bound to the figure of the individual that appears when it is drawn out and exposed by intention, or when it fails to be hidden in time. Forms that twist, protrude, are covered, and become visible again blur the boundary while appearing like organs exposed from within. She touches and rubs them so that their inside and outside do not break. And this manner of care is placed far below eye level, a metaphor for the state of care that lies at the base.",
+        "Their objects share the property of being hard and yet still weak to impact. Viewing therefore demands a double sense: to approach with delicacy, or to stand well back. This will carry into the touch of bare feet on a soft carpet, stepping around the objects laid out there. The works thus operate less as devices that guide the viewer’s path and gaze politely and comfortably than as devices for speaking a certain disquiet. And the arrangement in which one work climbs onto or leans against another is, before it asks generosity of the viewer, a rudeness the three have permitted one another. This is a movement made so as not to petrify inside one’s own room, and a resolve to be willingly stained by each other. And finally they invite the viewer, as though handing over the key to the room. With the difficult request to keep a loose distance, and yet to come close as if tightly bound."
+      ]
+    },
+    "notes": {
+      "ko": [],
+      "en": []
+    },
+    "sign": {
+      "ko": [
+        "■ 김루이"
+      ],
+      "en": [
+        "■ Rui Kim"
+      ]
+    }
+  }
+];
+
+var CV = {
+  ko:[ { h:"학력", items:[
+         "한국예술종합학교 조형예술과 전문사 졸업",
+         "추계예술대학교 서양화과 학사"
+       ] },
+       { h:"개인전", items:[
+         "2025  《Pull the camera back more… Now it's near the retina》, 팩션, 서울"
+       ] },
+       { h:"단체전", items:[
+         "2024  《서울국제대안영상예술페스티벌: 박제된 데이터 떠도는 기억》, 뉴미디어 부문, 별관, 서울",
+         "2023  《Loose me tight》, 갤러리 175, 서울"
+       ] },
+       { h:"스크리닝", items:[
+         "2026  《인디스페이스 × 서신교환 ‘우리가 보는 동안에 A Pressing Need to Train the Eye’》, 인디스페이스, 서울",
+         "2024  《데이터로 재환원하는 일상실천미술관》, 씨웰안경원 / 아이공, 서울",
+         "2024  《Video delight × Couch potato》, 00의 00, 서울",
+         "2023  《스크리닝 프로그램: 가라앉아, 일으켜, 이어》, 안팎 스페이스, 서울"
+       ] },
+       { h:"프로젝트", items:[
+         "2025  《WESS: 전시후도록》, SALT(서울) / Adocs(온라인), 참여 작가",
+         "2024  《WESS: 전시후도록》, daPalm(서울) / Adocs(온라인), 참여 작가"
+       ] },
+       { h:"글쓰기", items:[
+         "2023  「주워 온 모든 것」, 『Road is Land : 로드 이즈 랜드』(원정인 저, 원인앤이펙트), 필자 참여",
+         "2023  「Loose me, tight」, 《Loose me tight》, 갤러리 175, 전시 서문"
+       ] },
+       { h:"기금", items:[
+         "2026  K-Arts 청년 창작자 지원사업 (인천문화재단, IFAC)",
+         "2025  청년예술지원, 서울문화재단 (SFAC)"
+       ] } ],
+  en:[ { h:"Education", items:[
+         "MFA, Korea National University of Arts (K-Arts), Fine Arts",
+         "BA in Fine Arts (Painting), Chugye University for the Arts"
+       ] },
+       { h:"Solo Exhibition", items:[
+         "2025  <em>Pull the camera back more… Now it's near the retina</em>, Faction, Seoul"
+       ] },
+       { h:"Group Exhibitions", items:[
+         "2024  <em>The 24th Seoul International ALT Cinema &amp; Media Art Festival (NeMaf)</em>, New Media Section, Outhouse, Seoul",
+         "2023  <em>Loose me tight</em>, Gallery 175, Seoul"
+       ] },
+       { h:"Screenings", items:[
+         "2026  Indie Space × Correspondencia(s), <em>A Pressing Need to Train the Eye</em>, Indie Space, Seoul",
+         "2024  <em>Everyday Practice of Re-encoding Data into Art</em>, See Well Optics / Igong, Seoul",
+         "2024  <em>Video delight × Couch potato</em>, 00 of 00, Seoul",
+         "2023  <em>Screening Program: Sink, Stir, Connect</em>, Anpak Space, Seoul"
+       ] },
+       { h:"Projects", items:[
+         "2025  <em>WESS: Exhibition / Publication</em>, SALT (Seoul) / Adocs (Online), Contributor",
+         "2024  <em>WESS: Exhibition / Publication</em>, daPalm (Seoul) / Adocs (Online), Contributor"
+       ] },
+       { h:"Texts", items:[
+         "2023  “Gathering Fragments,” in <em>Road is Land</em>, written by Jungin Won, published by Weonin and Effect, Contributor",
+         "2023  Foreword “Loose me, tight,” in <em>Loose me tight</em>, Gallery 175"
+       ] },
+       { h:"Grants", items:[
+         "2026  K-Arts Support Program for Young Creators (IFAC)",
+         "2025  Youth Arts Support, Seoul Foundation for Arts and Culture (SFAC)"
+       ] } ]
+};
+
+var CONTACT = { email:"a.parallel.one@gmail.com", instagram:"@rui_zzang__" };
+
+function tt(o){ return o[lang]; }
+
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = l;
+  document.getElementById("ko").className = l==="ko" ? "on" : "";
+  document.getElementById("en").className = l==="en" ? "on" : "";
+  render();
+}
+function go(r){ selected = null; textOpen = "statement"; route = r; render(); window.scrollTo(0,0); }
+
+function render(){
+  document.body.classList.toggle('home-mode', route==="home");
+  document.body.classList.toggle('lang-en', lang==="en");
+  document.body.classList.toggle('route-work', route==="work");
+  var hb = document.getElementById("home-bg");
+  if(HOME_BG) hb.style.backgroundImage = 'url("'+HOME_BG+'")';
+
+  var mn = document.getElementById("menu"); mn.innerHTML = "";
+  MENU.forEach(function(m){
+    var b = document.createElement("button");
+    b.textContent = m[1];
+    if(route===m[0]) b.className = "active";
+    b.onclick = function(){ go(m[0]); };
+    mn.appendChild(b);
+  });
+
+  ["work","text","cv"].forEach(function(p){ document.getElementById(p).classList.remove("active"); });
+  if(route==="home") return;
+
+  if(route==="work") renderWork();
+  if(route==="text") renderText();
+  if(route==="cv") renderCV();
+  document.getElementById(route).classList.add("active");
+}
+
+function stillsHTML(w){
+  var cap = w.caption ? tt(w.caption) : null;
+  var capHtml = cap ? '<div class="d-cap">'+(Array.isArray(cap)?cap.map(function(l){return '<div class="cap-line">'+l+'</div>';}).join(""):cap)+'</div>' : "";
+  if(!w.images || !w.images.length) return capHtml;
+  var inner = w.images.map(function(it){
+    if(typeof it === "string") return '<img class="stack-img" src="'+it+'" alt="">';
+    if(it && it.gap) return '<div style="height:'+it.gap+'px"></div>';
+    if(it && it.src) return '<img class="stack-img" src="'+it.src+'" alt=""'+(it.w?' style="width:'+it.w+';align-self:center;"':'')+'>';
+    if(it && it.cap){
+      var css = it.w ? 'align-self:center;width:'+it.w+'px;max-width:100%;' : "";
+      if(it.style) css += it.style;
+      var cs = css ? ' style="'+css+'"' : "";
+      return '<div class="stack-cap'+(it.indent?" indent":"")+'"'+cs+'>' + (it.cap[lang]||[]).map(function(l){ return '<div class="cap-line">'+l+'</div>'; }).join("") + '</div>';
+    }
+    return "";
+  }).join("");
+  return '<div class="img-stack">'+inner+'</div>'+capHtml;
+}
+
+function trackRow(w){
+  var cls = "track"+(w.id===selected?" active":"");
+  var t = w.tr||{}, cells;
+  if(w.kind==="o"){
+    var sv = t.siz ? tt(t.siz) : "";
+    cells = '<span class="ttitle">'+tt(w.title)+'</span>'
+      + (sv ? '<span class="f mat">'+(t.mat?tt(t.mat):"")+'</span><span class="f siz">'+sv+'</span>'
+            : '<span class="f matfull">'+(t.mat?tt(t.mat):"")+'</span>')
+      + '<span class="yr">'+w.year+'</span>';
+  } else if(t.status){
+    cells = '<span class="ttitle">'+tt(w.title)+'</span>'
+      + '<span class="f prog">'+(t.ch?tt(t.ch)+' · ':"")+tt(t.status)+'</span>'
+      + '<span class="yr">'+w.year+'</span>';
+  } else {
+    cells = '<span class="ttitle">'+tt(w.title)+'</span>'
+      + '<span class="f">'+tt(t.ch)+'</span><span class="f">'+t.run+'</span>'
+      + '<span class="f">'+t.res+'</span><span class="f">'+tt(t.col)+'</span>'
+      + '<span class="f">'+tt(t.snd)+'</span><span class="f fps">'+(t.fps||"")+'</span><span class="yr">'+w.year+'</span>';
+  }
+  return '<button class="'+cls+'" onclick="pick(\''+w.id+'\')">'+cells+'</button>';
+}
+
+var stageWorkId;   // 현재 stage에 올라가 있는 작업 id. 미설정(undefined)은 "아직 안 그림"이며 selected===null 과 구별된다.
+
+function renderWork(){
+  var root = document.getElementById("work");
+
+  // 골격은 한 번만 만든다. innerHTML을 다시 쓰면 iframe이 파괴되어 영상이 재로딩된다.
+  if(!root.querySelector(".player")){
+    root.innerHTML =
+      '<div class="player"><div class="pl-left">'
+      + '<div class="stage-holder"></div><div class="tracklist"></div>'
+      + '</div><div class="pl-right"></div></div>';
+    stageWorkId = undefined;
+  }
+
+  var holder = root.querySelector(".stage-holder");
+  var w = selected ? WORKS.filter(function(x){ return x.id===selected; })[0] : null;
+
+  // stage는 작업이 실제로 바뀐 경우에만 다시 만든다 (언어 전환 시 영상 유지)
+  if(stageWorkId !== selected){
+    if(w && w.embed){
+      var cap = w.videoWidth ? ' style="--stage-max:'+w.videoWidth+'"' : '';
+      holder.innerHTML = '<div class="stage"'+cap+'><iframe class="vfill" src="'+w.embed+'" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
+    } else {
+      holder.innerHTML = '<div class="stage"></div>';
+    }
+    stageWorkId = selected;
+  }
+
+  root.querySelector(".tracklist").innerHTML = WORKS.map(trackRow).join("");
+  root.querySelector(".pl-right").innerHTML = w
+    ? (stillsHTML(w) || (w.embed ? "" : '<div class="ph">'+(lang==="ko"?"준비 중":"coming soon")+'</div>'))
+    : '<div class="ph"><em>select a work from the list</em></div>';
+}
+
+function pick(id){ selected = id; renderWork(); window.scrollTo(0,0); }
+function pickText(id){ textOpen = (textOpen===id) ? null : id; renderText(); }
+
+function textLines(t, key){
+  var o = t[key] || {};
+  return (o[lang] && o[lang].length) ? o[lang] : (o.ko || []);
+}
+
+function renderText(){
+  var stTitle = (lang==="ko") ? "작가 소개" : "Artist statement";
+  var list = '<button class="t-title'+(textOpen==="statement"?" active":"")+'" onclick="pickText(\'statement\')">'+stTitle+'</button>'
+    + '<div class="t-gap"></div>'
+    + TEXTS.map(function(t){
+        var cls = "t-title"+(t.id===textOpen?" active":"");
+        return '<button class="'+cls+'" onclick="pickText(\''+t.id+'\')">'+tt(t.title)+'</button>';
+      }).join("");
+
+  var detail = "";
+  if(textOpen==="statement"){
+    detail = '<div class="t-body t-stmt">'+STATEMENT[lang].map(function(p){ return '<p>'+p+'</p>'; }).join("")+'</div>';
+  } else if(textOpen){
+    var t = TEXTS.filter(function(x){ return x.id===textOpen; })[0];
+    var body = textLines(t,"body").map(function(p){
+      if(p.indexOf("q:")===0) return '<p class="q">'+p.slice(2)+'</p>';
+      if(p.indexOf("h:")===0) return '<p class="h">'+p.slice(2)+'</p>';
+      return '<p>'+p+'</p>';
+    }).join("");
+    var notes = textLines(t,"notes");
+    var notesHtml = notes.length ? '<div class="t-notes">'+notes.map(function(n){ return '<p>'+n+'</p>'; }).join("")+'</div>' : "";
+    var sign = textLines(t,"sign");
+    var signHtml = sign.length ? '<div class="t-sign">'+sign.map(function(l){ return '<div>'+l+'</div>'; }).join("")+'</div>' : "";
+    var linkHtml = "";
+    if(t.link){
+      linkHtml = '<div class="t-src"><a class="t-link" href="'+t.link.url+'" target="_blank" rel="noopener">'
+               + (t.link.label[lang]||t.link.label.ko) + '</a></div>';
+    }
+    var full = tt(t.title), head;
+    var bar = full.lastIndexOf("|");
+    if(bar > -1){
+      head = '<div class="t-head"><div class="t-h-title">'+full.slice(0,bar).trim()+'</div>'
+           + '<div class="t-h-by">'+full.slice(bar+1).trim()+'</div></div>';
+    } else {
+      head = '<div class="t-head"><div class="t-h-title">'+full+'</div></div>';
+    }
+    detail = '<div class="t-sheet">'+head+'<div class="t-body">'+body+'</div>'+notesHtml+signHtml+linkHtml+'</div>';
+  }
+
+  var html = '<div class="texts-page">'
+    + '<div class="texts-wrap">'
+    + '<div class="texts-list">'+list+'</div>'
+    + '<div class="texts-detail">'+detail+'</div>'
+    + '</div></div>';
+
+  document.getElementById("text").innerHTML = html;
+}
+
+function renderCV(){
+  var ig = CONTACT.instagram.replace(/^@/, "");   // URL에는 @를 넣지 않는다
+  var html = '<div class="contact"><div class="cv-sec">'
+    + '<div class="row"><a class="link" href="mailto:'+CONTACT.email+'">'+CONTACT.email+'</a></div>'
+    + '<div class="row"><a class="link" href="https://www.instagram.com/'+ig+'/" target="_blank" rel="noopener">@'+ig+'</a></div>'
+    + '</div></div>';
+  CV[lang].forEach(function(sec){
+    html += '<div class="cv-sec"><h3>'+sec.h+'</h3>';
+    sec.items.forEach(function(it){ html += '<div class="row">'+it+'</div>'; });
+    html += '</div>';
+  });
+  document.getElementById("cv").innerHTML = html;
+}
+
+document.getElementById("brand").onclick = function(){ go(route==="home" ? "work" : "home"); };
+document.getElementById("home-bg").onclick = function(){ go("work"); };
+document.getElementById("ko").onclick = function(){ setLang("ko"); };
+document.getElementById("en").onclick = function(){ setLang("en"); };
+
+render();
+</script>
+</body>
+</html>
