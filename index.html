@@ -192,7 +192,7 @@
   }
 
   /* ---------- PLAYER ---------- */
-  .player { display:flex; gap:44px; align-items:stretch; height:calc(100vh - 104px); }
+  .player { display:flex; gap:64px; align-items:stretch; height:calc(100vh - 104px); }
 
   /* works 전용: 우측에 고정 여백을 남기고, 콘텐츠는 화면을 따라 넓어진다.
      .pl-right 는 여백 끝까지 뻗어 스크롤바가 화면 우측 끝에 붙는다. 이미지 폭은 그대로. */
@@ -203,15 +203,22 @@
   .pl-right { flex:1; min-width:0; overflow-y:auto; min-height:0; }
   .stage-holder { flex-shrink:0; }
   /* stage: 16:9 높이(397)를 항상 예약해 트랙리스트 위치를 고정한다.
-     영상 폭만 --stage-max로 제한하고 가로 가운데 정렬. 세로 위치는 Vimeo가 결정. */
+     영상 폭만 --stage-max로 제한하고 가로 가운데 정렬. 세로 위치는 Vimeo가 결정.
+     margin-bottom:0 — 트랙리스트의 border-top이 곧 이 사각형의 아랫변이 된다.
+     영상이 없을 때 비어 있음은 상태가 아니라 닫힌 형식으로 읽힌다. */
   .stage { --stage-max:640px;
     position:relative; width:100%; aspect-ratio:16/9; flex-shrink:0; background:transparent;
-    overflow:hidden; margin-bottom:22px;
+    overflow:hidden; margin-bottom:18px;
     display:flex; justify-content:center; }
   .stage .vfill { position:static; width:100%; max-width:var(--stage-max); height:100%; border:0; display:block; }
-  .tracklist { border-top:1px solid var(--fg); margin-top:30px; flex:1; min-height:0; overflow-y:auto; }
+  .tracklist { border-top:1px solid var(--line); padding-top:14px; overflow-y:auto;
+    /* 선은 스테이지 바닥에 밀착한다. 남는 공간은 전부 목록 아래로 떨어진다.
+       한 눈에 다 보이지 않게. 행 높이 22.5px(=10px*1.35 + 4.5px*2) 기준. */
+    --row:22.5px;
+    flex:0 1 auto; min-height:0; max-height:calc(14px + var(--row) * 9 + 8px);
+    margin-top:0; margin-bottom:0; }
   .track { display:grid; grid-template-columns:1.5fr .56fr .48fr .5fr .5fr .42fr .3fr .5fr;
-    align-items:center; line-height:1.35; gap:10px; width:100%; text-align:left; padding:4px 2px;
+    align-items:center; line-height:1.35; gap:10px; width:100%; text-align:left; padding:4.5px 2px;
     color:var(--dim); transition:color .15s; }
   .track .specs { display:contents; }
   .track span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:inherit; }
