@@ -244,7 +244,8 @@
 
   @media (max-width:768px){
     body.route-work main { padding-right:20px; }
-    body.route-work .pl-right { padding-right:0; margin-right:0; }
+    /* 데스크톱 works 규칙(flex-basis:0 등)이 모바일까지 이기지 않도록 같은 명시도로 되돌린다 */
+    body.route-work .pl-right { padding-right:0; margin-right:0; flex:none; }
     .player { flex-direction:column; height:auto; gap:0; }
     /* 행·영상·이미지를 한 flex 컨테이너의 형제로 만들어 order 로 끼워 넣는다.
        iframe 은 DOM 에서 이동하지 않으므로 재로딩되지 않는다. */
