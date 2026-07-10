@@ -100,6 +100,8 @@
     scrollbar-width:thin; scrollbar-color:#222 transparent; }
   .texts-list::-webkit-scrollbar { width:4px; }
   .texts-list::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
+  /* 데스크톱에서만 리스트를 한 단계 작게. 모바일은 .texts-page 의 12px 을 그대로 쓴다. */
+  @media (min-width:769px){ .texts-list { font-size:11px; } }
   .texts-list .t-title { display:block; width:100%; text-align:left; padding:0 0 11px;
     color:var(--dim); line-height:1.4; transition:color .2s; }
   .texts-list .t-title { border-top:1px solid var(--line); padding-top:11px; }
@@ -324,20 +326,6 @@ var HOME_BG = "home.jpg";
 var MENU = [ ["work","WORKS"], ["text","TEXTS"], ["cv","CV"] ];
 
 var WORKS = [
-  { id:"cider", year:"2026", kind:"v", tr:{ status:{ko:"제작 중",en:"in progress"} },
-    title:{ ko:"Cider", en:"Cider" },
-    medium:{ ko:"단채널 영상, 43인치 모니터", en:"Single-channel video, 43-inch monitor" },
-    images:[
-      "images/cider-1.png",
-      {cap:{ ko:["⟨Cider⟩ 스틸컷"], en:["<em>Cider</em> film stills"] }}
-    ], embed:"" },
-  { id:"fuga", year:"2026", kind:"v", tr:{ status:{ko:"제작 중",en:"in progress"} },
-    title:{ ko:"Fuga", en:"Fuga" },
-    medium:{ ko:"렌더링 단채널 영상", en:"Rendered single-channel video" },
-    images:[
-      "images/fuga-1.jpg","images/fuga-2.jpg","images/fuga-3.jpg","images/fuga-4.jpg",
-      {cap:{ ko:["⟨Fuga⟩ 스틸컷"], en:["<em>Fuga</em> film stills"] }}
-    ], embed:"" },
   { id:"opera-glass", year:"2026", kind:"v", tr:{ ch:{ko:"단채널",en:"Single-channel"}, run:"23′06″", res:"FHD", col:{ko:"흑백",en:"b&w"}, snd:{ko:"사운드",en:"sound"}, fps:"15fps" },
     title:{ ko:"Opera Glass on the Teatro Anatomico di Padova 1595", en:"Opera Glass on the Teatro Anatomico di Padova 1595" },
     medium:{ ko:"단채널 영상, 고정 프로젝션, 사운드", en:"Single-channel video, fixed projection, sound" },
@@ -366,6 +354,20 @@ var WORKS = [
       {cap:{ ko:["Ecco (channel 1 view)", "전시 전경 \"Ecco\", K-Art space, 2026"], en:["<em>Ecco</em> (channel 1 view)", "Installation view \"Ecco\", K-Art space, Seoul, 2026"] }}
     ],
     embed:"https://player.vimeo.com/video/1207466297?title=0&byline=0&portrait=0&badge=0&autopause=0&player_id=0&app_id=58479" },
+  { id:"cider", year:"2026", kind:"v", tr:{ status:{ko:"제작 중",en:"in progress"} },
+    title:{ ko:"Cider", en:"Cider" },
+    medium:{ ko:"단채널 영상, 43인치 모니터", en:"Single-channel video, 43-inch monitor" },
+    images:[
+      "images/cider-1.png",
+      {cap:{ ko:["⟨Cider⟩ 스틸컷"], en:["<em>Cider</em> film stills"] }}
+    ], embed:"" },
+  { id:"fuga", year:"2026", kind:"v", tr:{ status:{ko:"제작 중",en:"in progress"} },
+    title:{ ko:"Fuga", en:"Fuga" },
+    medium:{ ko:"렌더링 단채널 영상", en:"Rendered single-channel video" },
+    images:[
+      "images/fuga-1.jpg","images/fuga-2.jpg","images/fuga-3.jpg","images/fuga-4.jpg",
+      {cap:{ ko:["⟨Fuga⟩ 스틸컷"], en:["<em>Fuga</em> film stills"] }}
+    ], embed:"" },
   { id:"fe", year:"2025", kind:"o", tr:{ mat:{ko:"가죽, 디하이드로미르세놀, 솔트 어코드, 갈바넘, 카스토레움, 블랙 페퍼, 벤조인, 머스크",en:"leather, dihydromyrcenol, salt accord, galbanum, castoreum, black pepper, benzoin, musk"}, siz:{ko:"",en:""} },
     title:{ ko:"Fe", en:"Fe" },
     medium:{ ko:"후각 설치, 수조, 향", en:"Olfactory installation, water pool, scent" },
