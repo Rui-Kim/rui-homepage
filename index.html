@@ -6,12 +6,12 @@
 <title>Rui Kim / 김루이</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  :root { --bg:#141414; --fg:#cfcfcf; --dim:#8a8a8a; --hover:#fff; --line:#2a2a2a;
-          --link:#6f9ff0; --link-hover:#a8c6ff; }
+  :root { --bg:#0a0a0a; --fg:#cfcfcf; --dim:#8a8a8a; --hover:#fff; --line:#2a2a2a;
+          --link:#6f9ff0; --link-hover:#a8c6ff; --sunk:#333333;
+          --work-void:280px; }
   html,body { background:var(--bg); }
-  /* works 페이지: 영상이 발광체가 되도록 배경을 더 낮춘다 */
-  html:has(body.route-work), body.route-work { background:#0a0a0a; }
-  body.route-work { transition:background-color .35s ease; }
+  /* cv 페이지만 원래 명도를 유지한다 */
+  html:has(#cv.active), body:has(#cv.active) { background:#141414; }
   body {
     color:var(--fg);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
@@ -48,7 +48,7 @@
   .lang .sep { color:var(--dim); }
 
   /* 본문 */
-  main { margin-left:100px; padding:64px 40px 40px 8px; }
+  main { margin-left:100px; padding:64px 88px 40px 8px; }
   .page { display:none; }
   .page.active { display:block; }
   p { margin-bottom:16px; max-width:640px; }
@@ -107,9 +107,8 @@
   .texts-list .t-gap + .t-title { border-top:0; padding-top:0; }
   .texts-list .t-title:hover { color:var(--hover); }
   .texts-list .t-title.active { color:var(--hover); }
-  .texts-list .stmt-mark { display:inline-block; font-size:1.5em; line-height:1;
-    letter-spacing:0; transform:translateY(1px); }
-  .texts-list .t-gap { height:101px; }
+  .texts-list .stmt-mark { letter-spacing:.06em; font-variant-numeric:tabular-nums; }
+  .texts-list .t-gap { height:300px; }
   .texts-detail { height:100%; overflow-y:auto; width:100%; max-width:644px; margin:0 auto;
     padding:0 42px; font-size:13px; scrollbar-width:thin; scrollbar-color:#222 transparent; }
   .texts-detail::-webkit-scrollbar { width:4px; }
@@ -168,6 +167,7 @@
 
   /* CV */
   #cv { font-size:11px; }
+  #cv .cv-sec, #cv .contact { max-width:680px; }   /* 한 줄이 화면을 가로지르지 않게 */
   .cv-sec { margin-bottom:24px; }
   .cv-sec h3 { color:var(--fg); font-size:1em; letter-spacing:.06em; margin-bottom:3px; }
   body.lang-en .cv-sec h3 { letter-spacing:.01em; }
@@ -193,6 +193,12 @@
 
   /* ---------- PLAYER ---------- */
   .player { display:flex; gap:44px; align-items:stretch; height:calc(100vh - 104px); }
+
+  /* works 전용: 우측에 고정 여백을 남기고, 콘텐츠는 화면을 따라 넓어진다.
+     .pl-right 는 여백 끝까지 뻗어 스크롤바가 화면 우측 끝에 붙는다. 이미지 폭은 그대로. */
+  body.route-work main { padding-right:calc(88px + var(--work-void)); }
+  body.route-work .pl-right { padding-right:var(--work-void); margin-right:calc(-1 * var(--work-void));
+    flex-basis:0; }
   .pl-left { flex:1.3; min-width:0; display:flex; flex-direction:column; min-height:0; }
   .pl-right { flex:1; min-width:0; overflow-y:auto; min-height:0; }
   .stage-holder { flex-shrink:0; }
@@ -205,13 +211,17 @@
   .stage .vfill { position:static; width:100%; max-width:var(--stage-max); height:100%; border:0; display:block; }
   .tracklist { border-top:1px solid var(--fg); margin-top:30px; flex:1; min-height:0; overflow-y:auto; }
   .track { display:grid; grid-template-columns:1.5fr .56fr .48fr .5fr .5fr .42fr .3fr .5fr;
-    align-items:center; line-height:1.5; gap:10px; width:100%; text-align:left; padding:5px 2px;
-    border-bottom:1px solid var(--line); color:var(--dim); transition:color .15s; }
+    align-items:center; line-height:1.5; gap:10px; width:100%; text-align:left; padding:7px 2px;
+    color:var(--dim); transition:color .15s; }
   .track .specs { display:contents; }
   .track span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:inherit; }
-  .track .f { font-variant-numeric:tabular-nums; letter-spacing:.03em; }
   .track .yr { grid-column:8; text-align:right; font-variant-numeric:tabular-nums; }
   .track .fps { grid-column:7; }
+  /* 사양은 부차적 정보다. 평소에는 어둠에 잠기고, 다가가면 떠오른다.
+     .track span 의 color:inherit 보다 뒤에 와야 이긴다 (명시도 동일) */
+  .track span.f { font-variant-numeric:tabular-nums; letter-spacing:.03em;
+    color:var(--sunk); transition:color .18s; }
+  .track:hover span.f, .track.active span.f { color:var(--dim); }
   .track .mat { grid-column:2 / 5; } .track .siz { grid-column:5 / 8; } .track .prog { grid-column:2 / 8; }
   .track .matfull { grid-column:2 / 8; white-space:normal; overflow:visible; }
   .track:hover, .track.active { color:var(--hover); }
@@ -233,6 +243,8 @@
   .yr-nav { display:none; }
 
   @media (max-width:768px){
+    body.route-work main { padding-right:20px; }
+    body.route-work .pl-right { padding-right:0; margin-right:0; }
     .player { flex-direction:column; height:auto; gap:0; }
     /* 행·영상·이미지를 한 flex 컨테이너의 형제로 만들어 order 로 끼워 넣는다.
        iframe 은 DOM 에서 이동하지 않으므로 재로딩되지 않는다. */
@@ -257,6 +269,7 @@
     .track .specs { display:block; grid-column:1; grid-row:2;
       font-size:.9em; line-height:1.2; opacity:.7; white-space:normal; overflow:visible; }
     .track .specs span { display:inline; white-space:normal; overflow:visible; }
+    .track span.f { color:var(--dim); }   /* 모바일에는 호버가 없다. 사양을 묻어두지 않는다 */
     .track .specs span + span::before { content:" · "; }
 
     .stage { --stage-max:none; margin:20px 0 0; }
@@ -362,7 +375,7 @@ var WORKS = [
               en:["<em>Pull the camera back more… Now it's near the retina</em> Installation view, Faction, Seoul, 2025."] },
     images:[
       "images/limbus-1.jpg",
-      {cap:{ ko:["《Limbus》는 레진을 뜨고 난 실리콘 몰드로서, 화면 속 망막 앞 광선과 혈관 모델을 3D 프린팅을 거쳐 물리적 표면으로 옮긴 것이다. 나는 소임을 다한 이 몰드를 관에 눕혔다."],
+      {cap:{ ko:["《Limbus》는 레진을 뜨고 난 실리콘 몰드로서, 화면 속 망막 앞 광선과 혈관 모델을 3D 프린팅을 거쳐 물리적 표면으로 옮긴 것이다. 나는 소임을 다한 이 몰드를 관에 안치했다."],
              en:["<em>Limbus</em> is a silicone mold left over after casting resin; through 3D printing, it carries onto a physical surface the model of the light rays and blood vessels in front of the retina within the screen. I laid this mold, its purpose fulfilled, in a coffin."] }, indent:true},
       "images/limbus-2.jpg","images/limbus-3.jpg","images/limbus-4.jpg"
     ], embed:"" },
@@ -1028,12 +1041,11 @@ function textLines(t, key){
   return (o[lang] && o[lang].length) ? o[lang] : (o.ko || []);
 }
 
-/* 스테이트먼트 항목 라벨. 여기 한 곳만 바꾸면 된다. */
-var STMT_LABEL = "◉";
+/* 스테이트먼트 항목 라벨. 해가 바뀌면 이 숫자만 고치면 된다. */
+var STMT_LABEL = "[2026 note]";
 
 function renderText(){
-  var stTitle = '<span class="stmt-mark" title="'+(lang==="ko"?"작가 소개":"Artist statement")+'" '
-              + 'aria-label="'+(lang==="ko"?"작가 소개":"Artist statement")+'">'+STMT_LABEL+'</span>';
+  var stTitle = '<span class="stmt-mark">'+STMT_LABEL+'</span>';
 
   var detail = buildTextDetail();
   // 모바일에서는 본문이 자기 항목 바로 아래로 펼쳐진다. 데스크톱에서는 이 사본을 감춘다.
