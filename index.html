@@ -160,11 +160,17 @@
     .texts-page { height:auto; display:block; }
     .texts-wrap { margin-top:28px; }
     .texts-list { position:static; width:100%; padding-right:0; border-right:0; overflow:visible; }
-    .texts-detail.detail-main { display:none; }   /* 모바일에서는 본문이 항목 아래로 */
+    .texts-detail.detail-main { display:none; }   /* 본문 사본은 목록 흐름 안(detail-inline)에서 다룬다 */
     .texts-detail.detail-inline { display:block; height:auto; overflow:visible;
-      margin:18px 0 26px; padding:0; }
+      margin:0 0 26px; padding:0; }
     .texts-detail .t-body.t-stmt { padding:0; font-size:10px; }   /* 좁은 화면: 여백 불필요, 더 작고 무심하게 */
     .texts-list .t-gap { height:34px; }
+
+    /* 목록 화면(기본): 제목만. 상세 화면(body.text-detail): 선택된 제목 아래 본문만 남기고 나머지는 숨긴다 */
+    body.text-detail .texts-list .t-title:not(.active),
+    body.text-detail .texts-list .t-gap { display:none; }
+    body.text-detail .texts-wrap { margin-top:8px; }
+    body.text-detail .texts-list .t-title.active { pointer-events:none; }
   }
 
   /* CV */
@@ -218,6 +224,7 @@
   }
 
   /* ---------- PLAYER ---------- */
+  .m-back { display:none; }   /* 모바일 상세 화면에서만 나타난다 */
   .player { display:flex; gap:64px; align-items:stretch; height:calc(100vh - 104px); }
 
   /* works 전용: 우측에 고정 여백을 남기고, 콘텐츠는 화면을 따라 넓어진다.
@@ -280,11 +287,19 @@
     /* 데스크톱 works 규칙(flex-basis:0 등)이 모바일까지 이기지 않도록 같은 명시도로 되돌린다 */
     body.route-work .pl-right { padding-right:0; margin-right:0; flex:none; }
     .player { flex-direction:column; height:auto; gap:0; }
-    /* 행·영상·이미지를 한 flex 컨테이너의 형제로 만들어 order 로 끼워 넣는다.
-       iframe 은 DOM 에서 이동하지 않으므로 재로딩되지 않는다. */
+    /* 컨테이너를 풀어 자식들을 한 flex 흐름의 형제로 만든다.
+       iframe(stage) 은 DOM 에서 이동/삭제되지 않으므로 화면을 전환해도 재로딩되지 않는다. */
     .pl-left, .tracklist, .yr-nav-slot { display:contents; }
-    .track, .stage-holder, .pl-right { order:var(--o, 0); }
+    .stage-holder, .pl-right { order:2; }
     .pl-right { flex:none; overflow:visible; min-height:0; margin-top:24px; }
+
+    /* 목록 화면(기본): 연도 내비 + 트랙리스트만. 상세(stage·pl-right·뒤로가기)는 숨긴다 */
+    .stage-holder, .pl-right, .m-back { display:none; }
+    /* 상세 화면(body.work-detail): 목록·연도 내비를 숨기고 상세만 */
+    body.work-detail .track,
+    body.work-detail .yr-nav { display:none; }
+    body.work-detail .stage-holder,
+    body.work-detail .pl-right { display:block; }
 
     .yr-nav { order:-1; display:flex; align-items:center; gap:10px;
       margin-bottom:0; padding-bottom:9px; border-bottom:1px solid var(--fg); }
@@ -307,8 +322,16 @@
     .track .specs span + span::before { content:" · "; }
 
     .stage { --stage-max:none; margin:20px 0 0; }
-    .stage:empty { display:none; }        /* 선택 전에는 빈 자리를 예약하지 않는다 */
-    .pl-right .ph { display:none; }       /* 아코디언에서는 안내 문구가 필요 없다 */
+    .stage:empty { margin:0; }            /* 제작 중 작업: 빈 stage 는 자리를 차지하지 않는다 */
+
+    /* 뒤로가기: 좌측 상단의 화살표 하나. 목록으로 돌아간다 */
+    body.work-detail .m-back, body.text-detail .m-back {
+      display:block; order:-2; width:auto; align-self:flex-start;
+      color:var(--dim); font-size:15px; line-height:1; padding:2px 10px 14px 0;
+      margin:0 0 4px; transition:color .2s; }
+    body.work-detail .m-back::before, body.text-detail .m-back::before { content:"\2190"; }
+    .m-back:active { color:var(--hover); }
+    .pl-right .ph { color:var(--dim); }   /* 제작 중 안내는 상세에서 보인다 */
   }
   .tracklist::-webkit-scrollbar-thumb, .pl-right::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
   /* 두 열 사이 간격만 좁힌다. 모바일에서는 행이 .player 의 직접 자식이므로 row-gap 을 건드리면 안 된다. */
@@ -915,12 +938,22 @@ function setLang(l){
   document.getElementById("en").className = l==="en" ? "on" : "";
   render();
 }
-function go(r){ selected = null; textOpen = "statement"; route = r; render(); window.scrollTo(0,0); }
+var isMobile = function(){ return window.matchMedia("(max-width:768px)").matches; };
+
+function go(r){
+  selected = null;
+  // 데스크톱 texts 는 늘 스테이트먼트가 열려 있고, 모바일은 목록만 보인 뒤 선택으로 들어간다
+  textOpen = isMobile() ? null : "statement";
+  route = r; render(); window.scrollTo(0,0);
+}
 
 function render(){
   document.body.classList.toggle('home-mode', route==="home");
   document.body.classList.toggle('lang-en', lang==="en");
   document.body.classList.toggle('route-work', route==="work");
+  // 모바일 전용: 선택이 있으면 상세 화면, 없으면 목록 화면 (데스크톱 CSS 는 이 클래스를 무시)
+  document.body.classList.toggle('work-detail', route==="work" && !!selected);
+  document.body.classList.toggle('text-detail', route==="text" && !!textOpen);
   var hb = document.getElementById("home-bg");
   if(HOME_BG) hb.style.backgroundImage = 'url("'+HOME_BG+'")';
 
@@ -1024,11 +1057,13 @@ function renderWork(){
   if(!root.querySelector(".player")){
     root.innerHTML =
       '<div class="player"><div class="pl-left">'
+      + '<button class="m-back" type="button" aria-label="back"></button>'
       + '<div class="yr-nav-slot"></div>'
       + '<div class="stage-holder"></div><div class="tracklist"></div>'
       + '</div><div class="pl-right"></div></div>';
     stageWorkId = undefined;
     if(yearFilter === undefined || yearFilter === null) yearFilter = WORKS[0].year;  // 기본값: 최신 연도
+    root.querySelector(".m-back").onclick = backToWorks;
   }
 
   var holder = root.querySelector(".stage-holder");
@@ -1054,35 +1089,39 @@ function renderWork(){
   layoutMobileOrder(root);
 }
 
-/* 모바일 아코디언: 영상·이미지를 선택한 행 바로 뒤에 오도록 order 를 매긴다.
-   iframe 은 DOM 에서 움직이지 않으므로 재로딩되지 않는다. 데스크톱에서는 order 가 무시된다. */
+/* 연도 필터: 선택한 연도가 아닌 행을 모바일 목록에서 감춘다(hide-m).
+   데스크톱은 이 클래스를 트랙 표시에 쓰지 않으므로 영향이 없다. */
 function layoutMobileOrder(root){
   var rows = [].slice.call(root.querySelectorAll(".track"));
-  var activeIdx = -1;
-  rows.forEach(function(r, i){
-    r.style.setProperty("--o", i*10);     // order 는 모바일 CSS 에서만 소비한다
+  rows.forEach(function(r){
     var y = r.getAttribute("data-year");
     r.classList.toggle("hide-m", yearFilter !== null && y !== yearFilter);
-    if(r.classList.contains("active")) activeIdx = i;
   });
-  var holder = root.querySelector(".stage-holder");
-  var right  = root.querySelector(".pl-right");
-  if(activeIdx > -1){
-    holder.style.setProperty("--o", activeIdx*10 + 5);
-    right.style.setProperty("--o", activeIdx*10 + 6);
-  } else {
-    holder.style.setProperty("--o", 100000);
-    right.style.setProperty("--o", 100001);
-  }
 }
 
+var listScrollY = 0;   // 목록에서 상세로 들어갈 때의 스크롤 위치를 기억해, 뒤로 나올 때 복원한다
+
 function pick(id){
+  var opening = selected !== id;
+  if(isMobile() && opening) listScrollY = window.scrollY;
   selected = (selected===id) ? null : id;   // 같은 작품을 다시 누르면 닫는다
-  renderWork();
-  // 모바일에서는 그 자리에서 펼쳐지므로 화면을 위로 튕기지 않는다
-  if(!window.matchMedia("(max-width:768px)").matches) window.scrollTo(0,0);
+  render();   // body.work-detail 토글까지 갱신
+  if(isMobile()){
+    window.scrollTo(0, opening ? 0 : listScrollY);   // 상세로 들어가면 맨 위, 목록으로 나오면 있던 자리로
+  } else {
+    window.scrollTo(0,0);
+  }
 }
-function pickText(id){ textOpen = (textOpen===id) ? null : id; renderText(); }
+function backToWorks(){ selected = null; render(); window.scrollTo(0, listScrollY); }
+
+function pickText(id){
+  var opening = textOpen !== id;
+  if(isMobile() && opening) listScrollY = window.scrollY;
+  textOpen = (textOpen===id) ? null : id;
+  render();
+  if(isMobile()) window.scrollTo(0, opening ? 0 : listScrollY);
+}
+function backToTexts(){ textOpen = null; render(); window.scrollTo(0, listScrollY); }
 
 function textLines(t, key){
   var o = t[key] || {};
@@ -1109,6 +1148,7 @@ function renderText(){
       }).join("");
 
   var html = '<div class="texts-page">'
+    + '<button class="m-back" type="button" aria-label="back" onclick="backToTexts()"></button>'
     + '<div class="texts-wrap">'
     + '<div class="texts-list">'+list+'</div>'
     + '<div class="texts-detail detail-main">'+detail+'</div>'
