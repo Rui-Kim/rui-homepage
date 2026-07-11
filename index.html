@@ -283,7 +283,8 @@
   .yr-nav { display:none; }
 
   @media (max-width:768px){
-    body.route-work main { padding-right:20px; }
+    body.route-work main { padding-left:10px; padding-right:10px; }
+    body.route-work.work-detail main { padding-left:20px; padding-right:20px; }
     body.route-work .pl-right { padding-right:0; margin-right:0; flex:none; }
     .player { flex-direction:column; height:auto; gap:0; }
     /* 컨테이너를 풀어 자식을 한 flex 흐름의 형제로. iframe(stage)은 DOM에서 이동/삭제되지 않아 재로딩되지 않는다. */
@@ -303,7 +304,7 @@
 
     /* 행: 제목(좌) + 연도(우) 를 첫 줄에, 사양을 둘째 줄에 */
     .track { grid-template-columns:1fr auto; column-gap:16px; row-gap:2px;
-      padding:11px 0; line-height:1.3; }
+      padding:7px 0; line-height:1.3; }
     .track .ttitle { grid-column:1; grid-row:1; white-space:normal; }
     .track .yr { display:block; grid-column:2; grid-row:1; align-self:start;
       color:var(--dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
