@@ -182,6 +182,30 @@
     transition:color .2s; }
   .contact a.link:hover { color:var(--link-hover); }
 
+  /* CV 항목 끝에 붙는 링크(사슬) — 설치 영상 모달을 연다 */
+  .cv-sec .row .vlink { display:inline-block; margin-left:8px; color:var(--dim);
+    vertical-align:baseline; cursor:pointer; transition:color .2s; }
+  .cv-sec .row .vlink:hover { color:var(--hover); }
+  .cv-sec .row .vlink svg { width:12px; height:12px; display:inline-block; vertical-align:-1px; }
+
+  /* 설치 영상 모달: 반투명 회색 배경 + 가운데 플레이어 */
+  .vid-modal { position:fixed; inset:0; z-index:100; display:none;
+    align-items:center; justify-content:center; padding:40px;
+    background:rgba(20,20,20,.72); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); }
+  .vid-modal.open { display:flex; }
+  .vm-frame { position:relative; width:100%; max-width:960px; }
+  .vm-embed { position:relative; width:100%; padding-top:56.25%; }
+  .vm-embed iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .vm-close { position:absolute; top:16px; right:20px; width:32px; height:32px;
+    color:#cfcfcf; background:none; border:0; cursor:pointer; line-height:1; font-size:26px;
+    transition:color .2s; }
+  .vm-close::before { content:"\00d7"; }
+  .vm-close:hover { color:#fff; }
+  @media (max-width:768px){
+    .vid-modal { padding:20px; }
+    .vm-close { top:8px; right:10px; }
+  }
+
   /* 모바일 */
   @media (max-width:768px){
     aside.side {
@@ -312,6 +336,11 @@
   <section class="page" id="text"></section>
   <section class="page" id="cv"></section>
 </main>
+
+<div id="vid-modal" class="vid-modal" aria-hidden="true">
+  <button class="vm-close" type="button" aria-label="close"></button>
+  <div class="vm-frame"><div class="vm-embed"></div></div>
+</div>
 
 <script>
 var lang = "ko";
@@ -805,13 +834,22 @@ var TEXTS = [
   }
 ];
 
+/* CV 항목 끝에 붙는 설치 영상 링크(사슬 아이콘). data-vid 로 Vimeo id 를 넘긴다. */
+function VLINK(vid){
+  return '<span class="vlink" role="button" tabindex="0" aria-label="영상 보기" data-vid="'+vid+'">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
+    + '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
+    + '</svg></span>';
+}
+
 var CV = {
   ko:[ { h:"학력", items:[
          "한국예술종합학교 조형예술과 전문사 졸업",
          "추계예술대학교 서양화과 학사"
        ] },
        { h:"개인전", items:[
-         "2025  《Pull the camera back more… Now it's near the retina》, 팩션, 서울"
+         "2025  《Pull the camera back more… Now it's near the retina》, 팩션, 서울"+VLINK("1209072018")
        ] },
        { h:"단체전", items:[
          "2024  《서울국제대안영상예술페스티벌: 박제된 데이터 떠도는 기억》, 뉴미디어 부문, 별관, 서울",
@@ -840,7 +878,7 @@ var CV = {
          "BA in Fine Arts (Painting), Chugye University for the Arts"
        ] },
        { h:"Solo Exhibition", items:[
-         "2025  <em>Pull the camera back more… Now it's near the retina</em>, Faction, Seoul"
+         "2025  <em>Pull the camera back more… Now it's near the retina</em>, Faction, Seoul"+VLINK("1209072018")
        ] },
        { h:"Group Exhibitions", items:[
          "2024  <em>The 24th Seoul International ALT Cinema &amp; Media Art Festival (NeMaf)</em>, New Media Section, Outhouse, Seoul",
@@ -1129,6 +1167,40 @@ document.getElementById("brand").onclick = function(){ go(route==="home" ? "work
 document.getElementById("home-bg").onclick = function(){ go("work"); };
 document.getElementById("ko").onclick = function(){ setLang("ko"); };
 document.getElementById("en").onclick = function(){ setLang("en"); };
+
+/* ---------- 설치 영상 모달 ---------- */
+var vidModal = document.getElementById("vid-modal");
+var vidEmbed = vidModal.querySelector(".vm-embed");
+
+function openVid(vid){
+  vidEmbed.innerHTML = '<iframe src="https://player.vimeo.com/video/'+vid
+    + '?badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1" '
+    + 'allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+  vidModal.classList.add("open");
+  vidModal.setAttribute("aria-hidden","false");
+  document.body.style.overflow = "hidden";
+}
+function closeVid(){
+  vidModal.classList.remove("open");
+  vidModal.setAttribute("aria-hidden","true");
+  vidEmbed.innerHTML = "";           // iframe 제거 → 재생·소리 정지
+  document.body.style.overflow = "";
+}
+
+// CV 안의 사슬 아이콘 클릭 (위임)
+document.getElementById("cv").addEventListener("click", function(e){
+  var el = e.target.closest(".vlink");
+  if(el){ e.preventDefault(); openVid(el.getAttribute("data-vid")); }
+});
+document.getElementById("cv").addEventListener("keydown", function(e){
+  if((e.key==="Enter"||e.key===" ") && e.target.closest(".vlink")){
+    e.preventDefault(); openVid(e.target.closest(".vlink").getAttribute("data-vid"));
+  }
+});
+// 닫기: × 버튼 / 배경 클릭 / ESC
+vidModal.querySelector(".vm-close").onclick = closeVid;
+vidModal.addEventListener("click", function(e){ if(e.target===vidModal) closeVid(); });
+document.addEventListener("keydown", function(e){ if(e.key==="Escape" && vidModal.classList.contains("open")) closeVid(); });
 
 render();
 </script>
