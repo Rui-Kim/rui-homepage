@@ -315,7 +315,7 @@
     .track .specs span + span::before { content:" · "; }
 
     .stage { --stage-max:none; margin:20px 0 0; }
-    .stage:empty { margin:0; }            /* 제작 중 작업: 빈 stage 는 자리를 차지하지 않는다 */
+    .stage:empty { display:none; margin:0; aspect-ratio:auto; height:0; }   /* 영상 없는 작품: 빈 무대의 높이 예약을 없앤다 */
 
     /* 뒤로가기: 좌측 상단 화살표 하나 */
     body.work-detail .m-back, body.text-detail .m-back {
