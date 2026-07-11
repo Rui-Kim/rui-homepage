@@ -1011,7 +1011,7 @@ function renderWork(){
   root.querySelector(".tracklist").innerHTML = WORKS.map(trackRow).join("");
   root.querySelector(".pl-right").innerHTML = w
     ? (stillsHTML(w) || (w.embed ? "" : '<div class="ph">'+(lang==="ko"?"준비 중":"coming soon")+'</div>'))
-    : '<div class="ph"><em>select a work from the list</em></div>';
+    : '<div class="ph"></div>';
 
   layoutMobileOrder(root);
 }
