@@ -935,7 +935,7 @@ var isMobile = function(){ return window.matchMedia("(max-width:768px)").matches
 
 function go(r){
   selected = null;
-  textOpen = isMobile() ? null : "statement";
+  textOpen = "statement";   // 데스크톱·모바일 모두 작가노트를 기본으로 펼친다
   route = r; render(); window.scrollTo(0,0);
 }
 
@@ -944,7 +944,8 @@ function render(){
   document.body.classList.toggle('lang-en', lang==="en");
   document.body.classList.toggle('route-work', route==="work");
   document.body.classList.toggle('work-detail', route==="work" && !!selected);
-  document.body.classList.toggle('text-detail', route==="text" && !!textOpen);
+  // 작가노트(statement)는 목록 위에 인라인으로 펼쳐 두고, 실제 글(리뷰)을 눌렀을 때만 상세 화면으로 전환
+  document.body.classList.toggle('text-detail', route==="text" && !!textOpen && textOpen!=="statement");
   var hb = document.getElementById("home-bg");
   if(HOME_BG) hb.style.backgroundImage = 'url("'+HOME_BG+'")';
 
@@ -1106,7 +1107,7 @@ function pickText(id){
   render();
   if(isMobile()) window.scrollTo(0, opening ? 0 : listScrollY);
 }
-function backToTexts(){ textOpen = null; render(); window.scrollTo(0, listScrollY); }
+function backToTexts(){ textOpen = "statement"; render(); window.scrollTo(0, listScrollY); }
 
 function textLines(t, key){
   var o = t[key] || {};
