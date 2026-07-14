@@ -860,6 +860,15 @@ function VLINK(vid){
     + '</svg></span>';
 }
 
+/* 외부 사이트로 나가는 사슬 링크(새 탭). CV 프로젝트 도록 등. vlink 스타일을 공유한다. */
+function XLINK(url){
+  return '<a class="vlink" href="'+url+'" target="_blank" rel="noopener" aria-label="링크 열기">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
+    + '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
+    + '</svg></a>';
+}
+
 var CV = {
   ko:[ { h:"학력", items:[
          "한국예술종합학교 조형예술과 전문사 졸업",
@@ -879,8 +888,8 @@ var CV = {
          "2023  《스크리닝 프로그램: 가라앉아, 일으켜, 이어》, 안팎 스페이스, 서울"
        ] },
        { h:"프로젝트", items:[
-         "2025  《WESS: 전시후도록》, SALT(서울) / Adocs(온라인), 참여 작가",
-         "2024  《WESS: 전시후도록》, daPalm(서울) / Adocs(온라인), 참여 작가"
+         "2025  《WESS: 전시후도록》, SALT(서울) / Adocs(온라인), 참여 작가"+XLINK("https://adocs.co/books/pull-the-camera-back-more-now-its-near-the-retina/"),
+         "2024  《WESS: 전시후도록》, daPalm(서울) / Adocs(온라인), 참여 작가"+XLINK("https://adocs.co/books/loose-me-tight/")
        ] },
        { h:"글쓰기", items:[
          "2023  「주워 온 모든 것」, 『Road is Land : 로드 이즈 랜드』(원정인 저, 원인앤이펙트), 필자 참여",
@@ -908,8 +917,8 @@ var CV = {
          "2023  <em>Screening Program: Sink, Stir, Connect</em>, Anpak Space, Seoul"
        ] },
        { h:"Projects", items:[
-         "2025  <em>WESS: Exhibition / Publication</em>, SALT (Seoul) / Adocs (Online), Contributor",
-         "2024  <em>WESS: Exhibition / Publication</em>, daPalm (Seoul) / Adocs (Online), Contributor"
+         "2025  <em>WESS: Exhibition / Publication</em>, SALT (Seoul) / Adocs (Online), Contributor"+XLINK("https://adocs.co/books/pull-the-camera-back-more-now-its-near-the-retina/"),
+         "2024  <em>WESS: Exhibition / Publication</em>, daPalm (Seoul) / Adocs (Online), Contributor"+XLINK("https://adocs.co/books/loose-me-tight/")
        ] },
        { h:"Texts", items:[
          "2023  “Gathering Fragments,” in <em>Road is Land</em>, written by Jungin Won, published by Weonin and Effect, Contributor",
@@ -1214,14 +1223,15 @@ function closeVid(){
   document.body.style.overflow = "";
 }
 
-// CV 안의 사슬 아이콘 클릭 (위임)
+// CV 안의 영상 사슬 클릭 (위임) — data-vid 가 있는 것만 모달. 외부 링크(a.vlink)는 그대로 이동
 document.getElementById("cv").addEventListener("click", function(e){
-  var el = e.target.closest(".vlink");
+  var el = e.target.closest(".vlink[data-vid]");
   if(el){ e.preventDefault(); openVid(el.getAttribute("data-vid")); }
 });
 document.getElementById("cv").addEventListener("keydown", function(e){
-  if((e.key==="Enter"||e.key===" ") && e.target.closest(".vlink")){
-    e.preventDefault(); openVid(e.target.closest(".vlink").getAttribute("data-vid"));
+  var el = e.target.closest(".vlink[data-vid]");
+  if((e.key==="Enter"||e.key===" ") && el){
+    e.preventDefault(); openVid(el.getAttribute("data-vid"));
   }
 });
 // 닫기: × 버튼 / 배경 클릭 / ESC
