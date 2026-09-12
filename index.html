@@ -110,7 +110,7 @@
   .texts-list .t-gap + .t-title { border-top:0; padding-top:0; }
   .texts-list .t-title:hover { color:var(--hover); }
   .texts-list .t-title.active { color:var(--hover); }
-  .texts-list .stmt-mark { letter-spacing:.06em; font-variant-numeric:tabular-nums; }
+
   .texts-list .t-gap { height:300px; }
   .texts-detail { height:100%; overflow-y:auto; width:100%; max-width:644px; margin:0 auto;
     padding:0 42px; font-size:13px; scrollbar-width:thin; scrollbar-color:#222 transparent; }
@@ -119,8 +119,7 @@
   .texts-detail .t-body p { color:var(--fg); max-width:none; line-height:1.8; margin-bottom:17px; text-indent:1em; }
   .texts-detail .t-body p.q { text-indent:0; color:var(--dim); padding-left:1.6em; margin:22px 0; }
   .texts-detail .t-body p.h { text-indent:0; color:var(--fg); letter-spacing:.04em; line-height:1.6; margin:34px 0 15px; }
-  /* 작가 소개는 시트를 두르지 않지만, 글줄 폭은 다른 글과 같게 유지한다 */
-  .texts-detail .t-body.t-stmt { font-size:12px; padding:0 44px; }
+
   .texts-detail .t-body sup { font-size:.72em; line-height:0; vertical-align:super; color:var(--dim); margin-left:1px; }
   .texts-detail .t-notes { margin-top:30px; padding-top:14px; border-top:1px solid var(--line); }
   .texts-detail .t-notes p { color:var(--dim); font-size:.84em; line-height:1.5; margin-bottom:7px; max-width:none; }
@@ -164,7 +163,6 @@
     .texts-detail.detail-main { display:none; }   /* 모바일에서는 본문이 항목 아래로 */
     .texts-detail.detail-inline { display:block; height:auto; overflow:visible;
       margin:0 0 26px; padding:0; }
-    .texts-detail .t-body.t-stmt { padding:0; font-size:10px; }   /* 좁은 화면: 여백 불필요, 더 작고 무심하게 */
     .texts-list .t-gap { height:34px; }
 
     /* 목록 화면(기본): 제목만. 상세(body.text-detail): 선택된 제목 아래 본문만, 나머지는 숨김 */
@@ -363,7 +361,7 @@
 var lang = "ko";
 var route = "home";
 var selected = null;
-var textOpen = "statement";
+var textOpen = null;
 
 // ← index.html 과 같은 폴더에 이 이름으로 이미지를 저장하면 홈 배경으로 뜸
 // (URL 이나 data URI 를 넣어도 됨)
@@ -552,14 +550,7 @@ var WORKS = [
     images:["images/hole-2-1.jpg","images/hole-2-2.jpg","images/hole-2-3.jpg","images/hole-2-4.jpg"], embed:"" },
 ];
 
-var STATEMENT = {
-  ko:[ "저는 마주봄의 불가능성을 생각합니다. 빛과 카메라, 눈과 세계, 인간과 다른 존재, 사물과 공간은 서로를 완전히 소유하거나 전달하지 못합니다. 저는 3D 영상과 오브제, 설치를 통해 이러한 관계를 배열하고, 우리가 현실이라고 부르는 것이 어떤 조건에서 성립하는지를 탐구합니다.",
-       "최근에는 영상을 스크린 위의 이미지에 한정하지 않고, 실재와 완전히 맞닿지 못하는 하나의 상태로 이해할 가능성을 생각하고 있습니다.",
-       ],
-  en:[ "Kim Rui considers the impossibility of facing one another. Light and the camera, the eye and the world, humans and other beings, objects and space can never fully possess or transmit one another. Through 3D video, objects, and installation, she arranges these relationships and investigates the conditions under which what we call reality comes into being.",
-       "Recently, she has been exploring the possibility of understanding video not merely as an image on a screen, but as a state that can never fully coincide with the real.",
-       ]
-};
+
 
 var TEXTS = [
   {
@@ -949,7 +940,7 @@ var isMobile = function(){ return window.matchMedia("(max-width:768px)").matches
 
 function go(r){
   selected = null;
-  textOpen = "statement";   // 데스크톱·모바일 모두 작가노트를 기본으로 펼친다
+  textOpen = null;
   route = r; render(); window.scrollTo(0,0);
 }
 
@@ -958,8 +949,7 @@ function render(){
   document.body.classList.toggle('lang-en', lang==="en");
   document.body.classList.toggle('route-work', route==="work");
   document.body.classList.toggle('work-detail', route==="work" && !!selected);
-  // 작가노트(statement)는 목록 위에 인라인으로 펼쳐 두고, 실제 글(리뷰)을 눌렀을 때만 상세 화면으로 전환
-  document.body.classList.toggle('text-detail', route==="text" && !!textOpen && textOpen!=="statement");
+  document.body.classList.toggle('text-detail', route==="text" && !!textOpen);
   var hb = document.getElementById("home-bg");
   if(HOME_BG) hb.style.backgroundImage = 'url("'+HOME_BG+'")';
 
@@ -1121,26 +1111,19 @@ function pickText(id){
   render();
   if(isMobile()) window.scrollTo(0, opening ? 0 : listScrollY);
 }
-function backToTexts(){ textOpen = "statement"; render(); window.scrollTo(0, listScrollY); }
+function backToTexts(){ textOpen = null; render(); window.scrollTo(0, listScrollY); }
 
 function textLines(t, key){
   var o = t[key] || {};
   return (o[lang] && o[lang].length) ? o[lang] : (o.ko || []);
 }
 
-/* 스테이트먼트 항목 라벨. 해가 바뀌면 이 숫자만 고치면 된다. */
-var STMT_LABEL = "[2026 note]";
-
 function renderText(){
-  var stTitle = '<span class="stmt-mark">'+STMT_LABEL+'</span>';
-
   var detail = buildTextDetail();
   // 모바일에서는 본문이 자기 항목 바로 아래로 펼쳐진다. 데스크톱에서는 이 사본을 감춘다.
   var inline = detail ? '<div class="texts-detail detail-inline">'+detail+'</div>' : "";
 
-  var list = '<button class="t-title'+(textOpen==="statement"?" active":"")+'" onclick="pickText(\'statement\')">'+stTitle+'</button>'
-    + (textOpen==="statement" ? inline : "")
-    + '<div class="t-gap"></div>'
+  var list = '<div class="t-gap"></div>'
     + TEXTS.map(function(t){
         var cls = "t-title"+(t.id===textOpen?" active":"");
         return '<button class="'+cls+'" onclick="pickText(\''+t.id+'\')">'+tt(t.title)+'</button>'
@@ -1158,9 +1141,6 @@ function renderText(){
 }
 
 function buildTextDetail(){
-  if(textOpen==="statement"){
-    return '<div class="t-body t-stmt">'+STATEMENT[lang].map(function(p){ return '<p>'+p+'</p>'; }).join("")+'</div>';
-  }
   if(!textOpen) return "";
   var t = TEXTS.filter(function(x){ return x.id===textOpen; })[0];
   if(!t) return "";
