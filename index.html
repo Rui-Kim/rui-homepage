@@ -328,6 +328,13 @@
   .tracklist::-webkit-scrollbar-thumb, .pl-right::-webkit-scrollbar-thumb { background:#222; border-radius:2px; }
   /* 두 열 사이 간격만 좁힌다. 모바일에서는 행이 .player 의 직접 자식이므로 row-gap 을 건드리면 안 된다. */
   @media (max-width:900px){ .player { column-gap:26px; } }
+
+  /* Paputa 세로 영상 전용: 다른 작품의 플레이어 크기는 유지 */
+  .stage.paputa-stage { width:min(100%, 270px); aspect-ratio:9/16; margin-left:auto; margin-right:auto; }
+  .stage.paputa-stage .vfill { width:100%; max-width:none; height:100%; }
+  @media (max-width:768px){
+    .stage.paputa-stage { width:min(100%, 320px); margin:20px auto 0; }
+  }
 </style>
 </head>
 <body>
@@ -1069,7 +1076,8 @@ function renderWork(){
   if(stageWorkId !== selected){
     if(w && w.embed){
       var cap = w.videoWidth ? ' style="--stage-max:'+w.videoWidth+'"' : '';
-      holder.innerHTML = '<div class="stage"'+cap+'><iframe class="vfill" src="'+w.embed+'" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
+      var stageClass = w.id === 'paputa' ? 'stage paputa-stage' : 'stage';
+      holder.innerHTML = '<div class="'+stageClass+'"'+cap+'><iframe class="vfill" src="'+w.embed+'" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
     } else {
       holder.innerHTML = '<div class="stage"></div>';
     }
