@@ -88,6 +88,8 @@
   .img-stack .stack-cap { align-self:stretch; text-align:left; margin:4px 0 11px; color:var(--fg); line-height:1.45; }
   .img-stack .stack-cap.indent .cap-line { text-indent:1.6em; }
   .img-stack .stack-cap .cap-line { margin-bottom:2px; }
+  /* 오르페우스와 에우리디체 작업설명: 문단 사이 한 줄 간격 */
+  .img-stack .stack-cap.compact-copy .cap-line + .cap-line { margin-top:1.45em; }
 
   /* TEXTS */
   .writing { margin-top:36px; }
@@ -379,45 +381,33 @@ var MENU = [ ["work","WORKS"], ["text","TEXTS"], ["cv","CV"] ];
 var WORKS = [
   { id:"orpheus-eurydice", year:"2026", kind:"v",
     tr:{ status:{ko:"설치 · 17분",en:"Installation · 17 min"} },
-    title:{
-      ko:"오르페우스와 에우리디체",
-      en:"Orpheus and Eurydice"
-    },
-    medium:{
-      ko:"설치, 17분",
-      en:"Installation, 17 min"
-    },
+    title:{ ko:"오르페우스와 에우리디체", en:"Orpheus and Eurydice" },
+    medium:{ ko:"설치, 17분", en:"Installation, 17 min" },
     images:[
       {cap:{
         ko:[
-          "두 개의 캐릭터, 카메라와 조명기가 서로를 마주한다. 조명기가 빛을 밝히면 카메라는 그 빛을 촬영해 다시 투사한다. 토해낸 이미지를 다시 촬영하고, 다시 투사한다. 누가 누구를 보고 무엇이 무엇을 재현하는가? 원본과 재현, 재현하는 주체와 재현되는 대상의 위치가 에셔의 그림처럼 끊임없이 뒤집힌다."
-        ],
-        en:[
-          "Two characters, a camera and a light, face each other. When the light turns on, the camera captures that light and projects it again. It captures the image it has produced and projects it once more. Who is looking at whom, and what is representing what? The positions of original and representation, of the subject that represents and the object being represented, continually reverse, as in an Escher drawing."
-        ]
-      },indent:true},
-      {gap:20},
-      {cap:{
-        ko:[
-          "그러나 조명과 정확히 마주하는 순간, 이미지는 강한 빛에 포화된다. 카메라의 재귀적 구조는 이 순간 붕괴하고, 그 결과 이미지가 소멸한다."
-        ],
-        en:[
-          "Yet at the moment the camera faces the light directly, the image is saturated by its intensity. The camera's recursive structure collapses at this moment, and the image disappears."
-        ]
-      },indent:true},
-      {gap:20},
-      {cap:{
-        ko:[
+          "두 개의 캐릭터, 카메라와 조명기가 서로를 마주한다. 조명기가 빛을 밝히면 카메라는 그 빛을 촬영해 다시 투사한다. 토해낸 이미지를 다시 촬영하고, 다시 투사한다. 누가 누구를 보고 무엇이 무엇을 재현하는가? 원본과 재현, 재현하는 주체와 재현되는 대상의 위치가 에셔의 그림처럼 끊임없이 뒤집힌다.",
+          "그러나 조명과 정확히 마주하는 순간, 이미지는 강한 빛에 포화된다.<br>카메라의 재귀적 구조는 이 순간 붕괴하고, 그 결과 이미지가 소멸한다.",
           "남은 것은 부재다. 부재는 재현이 작동하는 바로 그 과정에서 발생하는 매체적 결과다."
         ],
         en:[
+          "Two characters, a camera and a light, face each other. When the light turns on, the camera captures that light and projects it again. It captures the image it has produced and projects it once more. Who is looking at whom, and what is representing what? The positions of original and representation, of the subject that represents and the object being represented, continually reverse, as in an Escher drawing.",
+          "Yet at the moment the camera faces the light directly, the image is saturated by its intensity.<br>The camera's recursive structure collapses at this moment, and the image disappears.",
           "What remains is absence. Absence is a material result of the medium, arising in the very process through which representation operates."
         ]
-      },indent:true}
+      }, indent:true, compact:true},
+      "images/orfeo-1.jpg",
+      "images/orfeo-2.jpg",
+      "images/orfeo-3.jpg",
+      "images/orfeo-4.jpg",
+      "images/orfeo-5.jpg",
+      {cap:{
+        ko:["《옵/신 포커스》, 윈드밀, 2026."],
+        en:["<em>ob/scene focus</em>, Windmill, 2026."]
+      }}
     ],
     embed:"https://player.vimeo.com/video/1246562878?autopause=0&player_id=0&app_id=58479"
   },
-
   { id:"opera-glass", year:"2026", kind:"v", tr:{ ch:{ko:"단채널",en:"Single-channel"}, run:"23′06″", res:"FHD", col:{ko:"흑백",en:"b&w"}, snd:{ko:"사운드",en:"sound"}, fps:"15fps" },
     title:{ ko:"Opera Glass on the Teatro Anatomico di Padova 1595", en:"Opera Glass on the Teatro Anatomico di Padova 1595" },
     medium:{ ko:"단채널 영상, 고정 프로젝션, 사운드", en:"Single-channel video, fixed projection, sound" },
@@ -446,24 +436,8 @@ var WORKS = [
       {cap:{ ko:["Ecco (channel 1 view)", "전시 전경 \"Ecco\", K-Art space, 2026"], en:["<em>Ecco</em> (channel 1 view)", "Installation view \"Ecco\", K-Art space, Seoul, 2026"] }}
     ],
     embed:"https://player.vimeo.com/video/1207466297?title=0&byline=0&portrait=0&badge=0&autopause=0&player_id=0&app_id=58479" },
-  { id:"cider", year:"2026", kind:"v", tr:{ status:{ko:"제작 중",en:"in progress"} },
-    title:{ ko:"Cider", en:"Cider" },
-    medium:{ ko:"단채널 영상, 43인치 모니터", en:"Single-channel video, 43-inch monitor" },
-    images:[
-      "images/cider-1.png",
-      "images/cider-2.png",
-      "images/cider-3.png",
-      "images/cider-4.png",
-      "images/cider-5.png",
-      {cap:{ ko:["⟨Cider⟩ 스틸컷"], en:["<em>Cider</em> film stills"] }}
-    ], embed:"" },
-  { id:"fuga", year:"2026", kind:"v", tr:{ status:{ko:"제작 중",en:"in progress"} },
-    title:{ ko:"Fuga", en:"Fuga" },
-    medium:{ ko:"렌더링 단채널 영상", en:"Rendered single-channel video" },
-    images:[
-      "images/fuga-1.jpg","images/fuga-2.jpg","images/fuga-3.jpg","images/fuga-4.jpg",
-      {cap:{ ko:["⟨Fuga⟩ 스틸컷"], en:["<em>Fuga</em> film stills"] }}
-    ], embed:"" },
+
+
   { id:"fe", year:"2025", kind:"o", tr:{ mat:{ko:"가죽, 디하이드로미르세놀, 솔트 어코드, 갈바넘, 카스토레움, 블랙 페퍼, 벤조인, 머스크",en:"leather, dihydromyrcenol, salt accord, galbanum, castoreum, black pepper, benzoin, musk"}, siz:{ko:"",en:""} },
     title:{ ko:"Fe", en:"Fe" },
     medium:{ ko:"후각 설치, 수조, 향", en:"Olfactory installation, water pool, scent" },
@@ -1036,7 +1010,7 @@ function stillsHTML(w){
       var css = it.w ? 'align-self:center;width:'+it.w+'px;max-width:100%;' : "";
       if(it.style) css += it.style;
       var cs = css ? ' style="'+css+'"' : "";
-      return '<div class="stack-cap'+(it.indent?" indent":"")+'"'+cs+'>' + (it.cap[lang]||[]).map(function(l){ return '<div class="cap-line">'+l+'</div>'; }).join("") + '</div>';
+      return '<div class="stack-cap'+(it.indent?" indent":"")+(it.compact?" compact-copy":"")+'"'+cs+'>' + (it.cap[lang]||[]).map(function(l){ return '<div class="cap-line">'+l+'</div>'; }).join("") + '</div>';
     }
     return "";
   }).join("");
@@ -1126,7 +1100,7 @@ function renderWork(){
   }
 
   root.querySelector(".yr-nav-slot").innerHTML = yearNavHTML();
-  root.querySelector(".tracklist").innerHTML = WORKS.map(trackRow).join("");
+  root.querySelector(".tracklist").innerHTML = WORKS.filter(function(w){ return w.id !== "cider" && w.id !== "fuga"; }).map(trackRow).join("");
   root.querySelector(".pl-right").innerHTML = w
     ? (stillsHTML(w) || (w.embed ? "" : '<div class="ph">'+(lang==="ko"?"준비 중":"coming soon")+'</div>'))
     : '<div class="ph"></div>';
